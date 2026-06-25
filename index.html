@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Soul Compass 月の羅針盤</title>
+<style>
+:root{
+  --bg:#f8f9fe; --card:#ffffff; --ink:#3c3f4a; --sub:#787e96; --line:#e7e9f3;
+  --plum:#8d9ce6; --plum-d:#7585dc; --gold:#eaa17c; --gold-l:#f4c4a8;
+  --green:#3aa982; --green-bg:#e6f6ef;
+  --purple:#7d6fc9; --purple-bg:#eeebfb;
+  --amber:#c79038; --amber-bg:#f9eed7;
+  --gray:#7a8197; --gray-bg:#eef0f6;
+  --orange:#df7a52; --orange-bg:#fce4da;
+  --shadow:0 3px 14px rgba(90,100,150,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px;padding-bottom:74px}
+h1,h2,h3{margin:0;font-weight:600}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:480px;margin:0 auto;padding:0 14px}
+.topbar{background:linear-gradient(180deg,#ffffff,#f2f4fd);color:var(--ink);padding:15px 14px 13px;border-bottom:1px solid var(--line)}
+.topbar .wrap{padding:0}
+.brand{display:flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.14em;color:var(--plum);font-weight:600}
+.brand .logo{display:inline-flex}
+.brand .logo svg{width:17px;height:17px;display:block}
+.prof{display:flex;align-items:baseline;gap:10px;margin-top:7px}
+.prof .name{font-size:18px;font-weight:600;color:var(--ink)}
+.prof .shuku{font-size:12px;background:var(--bg);color:var(--plum);padding:3px 11px;border-radius:20px;border:1px solid var(--line)}
+.prof .edit{margin-left:auto;font-size:12px;background:var(--plum);color:#fff;border:none;padding:6px 14px;border-radius:18px;font-weight:600}
+
+/* tabs / views */
+.view{display:none;padding-top:14px}
+.view.active{display:block}
+.section-title{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.1em;margin:22px 2px 9px;display:flex;align-items:center}
+.section-title::before{content:"";width:16px;height:1.5px;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:2px;margin-right:10px;flex:0 0 auto}
+.section-title .ico{display:none}
+
+.card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+
+/* today big card */
+.today-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.today-date{font-size:15px;font-weight:600}
+.today-date small{color:var(--sub);font-weight:400;margin-left:6px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-weight:600;font-size:14px}
+.shuku-line{display:flex;align-items:center;gap:10px;margin:4px 0 12px}
+.shuku-line .sk{font-size:26px;font-weight:600;letter-spacing:.02em}
+.rel-meaning{font-size:14px;color:#494d59;background:var(--bg);border-radius:12px;padding:11px 13px;margin-top:4px}
+.rel-meaning .lbl{font-size:11px;color:var(--sub);font-weight:600;display:block;margin-bottom:2px}
+.flags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.flag{font-size:12px;font-weight:600;padding:4px 11px;border-radius:18px;background:var(--orange-bg);color:var(--orange)}
+.flag.rk{background:var(--purple-bg);color:var(--purple)}
+
+/* color categories */
+.c-green{background:var(--green-bg);color:var(--green)}
+.c-purple{background:var(--purple-bg);color:var(--purple)}
+.c-amber{background:var(--amber-bg);color:var(--amber)}
+.c-gray{background:var(--gray-bg);color:var(--gray)}
+
+/* tasks */
+.task{display:flex;align-items:flex-start;gap:11px;padding:11px 4px;border-bottom:1px solid var(--line)}
+.task:last-child{border-bottom:none}
+.chk{flex:0 0 22px;width:22px;height:22px;border-radius:7px;border:2px solid var(--gold-l);margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;background:#fff;transition:.15s}
+.chk.on{background:var(--green);border-color:var(--green)}
+.task .txt{flex:1;font-size:14px}
+.task.done .txt{text-decoration:line-through;color:var(--sub)}
+.task .meta{font-size:11px;color:var(--sub);margin-top:2px}
+.task .cellbadge{font-size:10px;color:var(--plum);background:var(--purple-bg);padding:1px 7px;border-radius:12px;margin-right:5px}
+.task .resch{font-size:11px;border:1px solid var(--line);background:#fff;color:var(--plum);padding:3px 9px;border-radius:14px;margin-top:0}
+.task .resch.acc{background:var(--plum);color:#fff;border-color:var(--plum)}
+.empty{color:var(--sub);font-size:13px;text-align:center;padding:14px 0}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.add-row input{flex:1;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:14px;font-family:inherit}
+.add-row button{background:var(--plum);color:#fff;border:none;border-radius:12px;padding:0 16px;font-weight:600}
+
+/* mini calendar */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-h{text-align:center;font-size:11px;color:var(--sub);padding:2px 0}
+.cal-d{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;position:relative;border:1.5px solid transparent;cursor:pointer}
+.cal-d .rl{font-size:10px;margin-top:1px;font-weight:600}
+.cal-d.today{border-color:var(--gold);font-weight:700}
+.cal-d .ryo-dot{position:absolute;top:3px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--orange)}
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px}
+.cal-nav button{background:none;border:none;font-size:20px;color:var(--plum);padding:2px 8px}
+.cal-nav .lab{font-weight:600;font-size:15px;min-width:120px;text-align:center}
+
+/* tree */
+.tree-item{border:1px solid var(--line);border-radius:14px;margin-bottom:9px;overflow:hidden;background:#fff}
+.tree-head{display:flex;align-items:center;gap:9px;padding:12px 13px;cursor:pointer}
+.tree-head .num{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--purple-bg);color:var(--plum);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tree-head .tt{flex:1}
+.tree-head .tt b{display:block;font-size:14px}
+.tree-head .tt span{font-size:11px;color:var(--sub)}
+.tree-head .filled{color:var(--green);font-size:13px}
+.tree-body{display:none;padding:0 13px 13px}
+.tree-item.open .tree-body{display:block}
+.tree-body textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;min-height:64px}
+.daat{background:linear-gradient(135deg,#9a92db,#b3ace8);color:#fff;border:none}
+.daat .num{background:rgba(255,255,255,.2);color:#fff}
+.daat .tt span{color:rgba(255,255,255,.7)}
+
+/* mandala */
+.mandala{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+.mcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 8px 7px;height:108px;font-size:12px;cursor:pointer;display:flex;flex-direction:column;overflow:hidden}
+.mcell.center{background:linear-gradient(135deg,var(--plum),#a9b5ef);color:#fff;border:none;justify-content:center;text-align:center}
+.mcell .mtitle{font-weight:700;font-size:11.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mcell.center .mtitle{font-size:13px;-webkit-line-clamp:3}
+.mcell .mcount{margin-top:auto;font-size:10px;color:var(--plum);align-self:flex-end;opacity:.85}
+.mcell.center .mcount{align-self:center;color:rgba(255,255,255,.9);margin-top:6px}
+.mcell.center .mcount{color:rgba(255,255,255,.85)}
+.mcell .ph{color:var(--sub)}
+
+/* summary chips */
+.daylist{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.daychip{font-size:12px;padding:4px 10px;border-radius:14px;background:var(--bg)}
+.daychip b{font-weight:700}
+
+/* review */
+.stat{display:flex;gap:10px;margin-bottom:12px}
+.stat .box{flex:1;background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:13px;text-align:center}
+.stat .box .big{font-size:24px;font-weight:700;color:var(--plum)}
+.stat .box .lab{font-size:11px;color:var(--sub)}
+.bar{height:8px;background:var(--gray-bg);border-radius:6px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--green)}
+
+/* bottom nav */
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:50;box-shadow:0 -2px 12px rgba(60,45,90,.06)}
+.nav button{flex:1;background:none;border:none;padding:9px 0 10px;color:var(--sub);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav button .ni{line-height:1;display:flex}
+.nav button .ni svg{width:23px;height:23px;display:block}
+.nav button.on{color:var(--plum)}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(30,22,50,.5);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:14px;overflow-y:auto}
+.modal.show{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:452px;margin:auto;border-radius:20px;padding:18px 16px 22px;max-height:none;animation:up .22s ease}
+@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
+/* toast */
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:300;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sheet .grab{width:38px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 14px}
+.sheet h3{font-size:17px;margin-bottom:4px}
+.mactions-list{margin:10px 0}
+.btn-primary{width:100%;background:var(--plum);color:#fff;border:none;border-radius:14px;padding:13px;font-size:15px;font-weight:600;margin-top:6px}
+.btn-ghost{width:100%;background:none;border:1px solid var(--line);color:var(--sub);border-radius:14px;padding:11px;font-size:14px;margin-top:8px}
+label.fld{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}
+.fld input,.fld textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;font-size:15px;font-family:inherit}
+.row3{display:flex;gap:8px}
+.row3 .fld{flex:1}
+.note{font-size:11px;color:var(--sub);margin-top:6px;line-height:1.5}
+
+/* soul tree shape */
+.soultree{position:relative;width:100%;aspect-ratio:.74;margin:4px auto}
+.soultree svg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.soultree svg line{stroke:#e0d8ec;stroke-width:.7}
+.snode{position:absolute;transform:translate(-50%,-50%);width:19%;max-width:66px;aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:2px solid #fff;box-shadow:var(--shadow);cursor:pointer;padding:2px;line-height:1.15;z-index:1}
+.snode .sn-n{font-size:11px;font-weight:700}
+.snode .sn-name{font-size:9.5px;font-weight:600;margin-top:1px;letter-spacing:-.02em}
+.snode.p-l{background:linear-gradient(135deg,#a99be0,#c0b4ee);color:#fff}
+.snode.p-r{background:linear-gradient(135deg,#5cbfa0,#86d3bb);color:#fff}
+.snode.p-c{background:linear-gradient(135deg,#8d9ce6,#aab6ef);color:#fff}
+.snode.daat{width:14%;border-style:dashed;border-color:#c2bbe8;background:rgba(150,140,220,.14);color:var(--plum);box-shadow:none}
+.snode.daat .sn-name{font-size:8.5px}
+.snode.heart{width:23%;max-width:80px;box-shadow:0 0 0 4px rgba(141,156,230,.35),var(--shadow)}
+.snode .sn-dot{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;background:var(--green);border:2px solid #fff;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center}
+.tree-legend{display:flex;justify-content:center;gap:14px;font-size:11px;color:var(--sub);margin-top:4px}
+.tree-legend span{display:inline-flex;align-items:center;gap:4px}
+.tree-legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+#nodeText,#editText{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;font-family:inherit;min-height:110px;margin-top:8px}
+.nodeq{background:#fff;border-radius:12px;padding:11px 13px;font-size:13px;color:#494d59;border-left:3px solid var(--gold)}
+
+/* compass (使命・今月の目標) */
+.compass{background:linear-gradient(135deg,#fcfdff,#eef1fc);border:1px solid #e4e7f4}
+.cmp-row{display:flex;align-items:flex-start;gap:10px;padding:9px 2px;cursor:pointer}
+.cmp-row+.cmp-row{border-top:1px dashed #e1e4f2}
+.cmp-lab{flex:0 0 62px;font-size:11px;font-weight:700;color:var(--plum);background:var(--purple-bg);padding:4px 0;border-radius:10px;text-align:center}
+.cmp-lab.gold{color:#c2724a;background:#fbe3d4}
+.cmp-val{flex:1;font-size:14px;font-weight:600;padding-top:3px;white-space:pre-wrap;color:var(--ink)}
+.cmp-val.ph{color:var(--sub);font-weight:400}
+.cmp-edit{color:var(--gold);font-size:18px;align-self:center;font-weight:300}
+/* year/month fortune */
+.ymrow{display:flex;align-items:center;gap:9px;padding:8px 0}
+.ymrow+.ymrow{border-top:1px solid var(--line)}
+.ymk{flex:0 0 78px;font-size:12px;color:var(--sub);font-weight:600}
+.ymsk{font-size:12px;color:var(--ink);font-weight:600;margin-left:2px}
+.ymhint{flex:1 1 100%;font-size:12px;color:#646a82;margin-top:3px}
+/* calendar month fortune */
+.cal-fortune{margin:0 0 12px}
+.cf-head{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap}
+.cf-y{font-size:12px;color:var(--sub);background:var(--bg);padding:2px 9px;border-radius:12px}
+.cf-hint{font-size:12px;color:#646a82;text-align:center;margin-top:5px;line-height:1.5}
+/* 相性 body */
+.aibody{font-size:14px;white-space:pre-wrap;line-height:1.7;color:#494d59}
+.ai-person{font-weight:700;font-size:12px;color:var(--plum);letter-spacing:.06em;border-left:3px solid var(--gold);padding-left:8px}
+/* 陶宮術 */
+.tk-wheel{padding:11px 0}
+.tk-wheel+.tk-wheel{border-top:1px solid var(--line)}
+.tk-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.tk-rin{font-size:10px;font-weight:700;color:#c2724a;background:#fbe3d4;padding:3px 9px;border-radius:11px;white-space:nowrap}
+.tk-head b{font-size:15px;color:var(--ink)}
+.tk-title{font-size:12px;color:var(--sub)}
+.tk-kaiun{font-size:13px;line-height:1.7;color:#494d59;background:var(--bg);border-radius:12px;padding:10px 12px}
+.tk-kaiun .tk-lbl{display:block;font-size:11px;font-weight:600;color:var(--plum);margin-bottom:3px}
+.ai-dir{font-size:14px;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
+.ai-dir b{font-weight:700}
+/* tree summary list */
+.tree-sum{margin-top:10px}
+.tsum{display:flex;gap:10px;padding:9px 2px;cursor:pointer}
+.tsum+.tsum{border-top:1px solid var(--line)}
+.tsum-n{flex:0 0 24px;width:24px;height:24px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tsum-n.p-l{background:#b3a3e4}.tsum-n.p-r{background:#62c2a4}.tsum-n.p-c{background:#8d9ce6}
+.tsum-b{flex:1}
+.tsum-b b{display:block;font-size:12px;color:var(--sub)}
+.tsum-b span{font-size:14px;white-space:pre-wrap}
+/* mandala cell actions */
+.mcell-acts{margin-top:4px;display:flex;flex-direction:column;gap:2px;width:100%;overflow:hidden;flex:1}
+.mact{font-size:10px;line-height:1.4;color:#565a68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mact.done{color:var(--sub);text-decoration:line-through}
+.mact.more{color:var(--plum);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap">
+  <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="12" r="9"/><path d="M12 6.4l1.9 5.6-1.9 5.6-1.9-5.6z" fill="currentColor" stroke="none"/></svg></span><span>SOUL COMPASS ・ 月の羅針盤</span></div>
+  <div class="prof">
+    <span class="name" id="pName">ようこそ</span>
+    <span class="shuku" id="pShuku">本命宿 —</span>
+    <button class="edit" id="btnProfile">設定</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+
+  <!-- ===== TODAY ===== -->
+  <div class="view active" id="view-today">
+    <div class="section-title">使命 ・ 今月の目標</div>
+    <div class="card compass" id="compassCard"></div>
+    <div class="section-title">今日の運気</div>
+    <div class="card" id="todayCard"></div>
+    <div class="section-title">今日やること</div>
+    <div class="card">
+      <div id="todayTasks"></div>
+      <div class="add-row">
+        <input id="quickAdd" placeholder="今日のタスクを追加…">
+        <button id="quickAddBtn">追加</button>
+      </div>
+    </div>
+    <div id="overdueWrap"></div>
+    <div class="section-title">今年 ・ 今月の運気</div>
+    <div class="card" id="ymFortune"></div>
+    <div class="section-title">運気カレンダー（先の月も見られます）</div>
+    <div class="card">
+      <div class="cal-nav">
+        <button id="calPrev">‹</button><span class="lab" id="calLab"></span><button id="calNext">›</button>
+      </div>
+      <div class="cal-fortune" id="calFortune"></div>
+      <div class="cal-grid" id="calHead"></div>
+      <div class="cal-grid" id="calBody" style="margin-top:5px"></div>
+      <div class="daylist" style="margin-top:12px">
+        <span class="daychip c-green">発展</span><span class="daychip c-purple">転換</span>
+        <span class="daychip c-amber">注意</span><span class="daychip c-gray">休息</span>
+        <span class="daychip" style="background:var(--orange-bg);color:var(--orange)">●凌犯</span>
+      </div>
+    </div>
+    <div class="section-title">陶宮術 ・ 生き方と開運の指針</div>
+    <div class="card" id="tokyuCard"></div>
+  </div>
+
+  <!-- ===== PLAN ===== -->
+  <div class="view" id="view-plan">
+    <div class="cal-nav" style="margin-top:6px">
+      <button id="planPrev">‹</button><span class="lab" id="planLab"></span><button id="planNext">›</button>
+    </div>
+    <div class="section-title">生命の樹 ・ 今月の設計</div>
+    <div id="treeWrap"></div>
+    <div class="section-title">マンダラチャート ・ 今月の課題</div>
+    <div class="card">
+      <div class="mandala" id="mandala"></div>
+      <div class="note">中央＝使命。周囲8マスに、今月取り組む課題を書きます（タップで追加・編集）。<br>課題を「今日やる」と決めたら、課題に日付を設定すると「今日やること」に出ます。</div>
+    </div>
+    <div class="section-title">今月の運気サマリー</div>
+    <div class="card" id="planSummary"></div>
+  </div>
+
+  <!-- ===== REVIEW ===== -->
+  <div class="view" id="view-review">
+    <div class="cal-nav" style="margin-top:6px">
+      <button id="revPrev">‹</button><span class="lab" id="revLab"></span><button id="revNext">›</button>
+    </div>
+    <div class="section-title">今月の実践</div>
+    <div class="stat" id="revStat"></div>
+    <div class="card">
+      <div class="bar"><i id="revBar"></i></div>
+      <div class="note" id="revBarLab"></div>
+    </div>
+    <div class="section-title">マルクト ・ 現実に現れた成果</div>
+    <div class="card"><textarea id="revMalkuth" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;font-size:14px;font-family:inherit;min-height:90px" placeholder="今月、現実に現れた豊かさ・成果を記録しましょう。"></textarea></div>
+    <div class="section-title">振り返り</div>
+    <div class="card"><textarea id="revNote" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;font-size:14px;font-family:inherit;min-height:110px" placeholder="できたこと・できなかったこと・気づき・来月への引き継ぎ。"></textarea></div>
+  </div>
+
+  <!-- ===== AISHO (相性) ===== -->
+  <div class="view" id="view-aisho">
+    <div class="section-title">相性診断</div>
+    <div class="card">
+      <div class="note" style="margin-top:0;margin-bottom:10px">お二人の生年月日から、二人の関係（例：安壊の関係）と、お互いの付き合い方がわかります。</div>
+      <div class="ai-person">お一人目</div>
+      <label class="fld">お名前（任意）<input id="aiName" placeholder="例：自分"></label>
+      <div class="row3">
+        <div class="fld"><input id="aiY" type="number" inputmode="numeric" placeholder="年" min="1900" max="2100"></div>
+        <div class="fld"><input id="aiM" type="number" inputmode="numeric" placeholder="月" min="1" max="12"></div>
+        <div class="fld"><input id="aiD" type="number" inputmode="numeric" placeholder="日" min="1" max="31"></div>
+      </div>
+      <div class="ai-person" style="margin-top:14px">お二人目</div>
+      <label class="fld">お名前（任意）<input id="biName" placeholder="例：相手"></label>
+      <div class="row3">
+        <div class="fld"><input id="biY" type="number" inputmode="numeric" placeholder="年" min="1900" max="2100"></div>
+        <div class="fld"><input id="biM" type="number" inputmode="numeric" placeholder="月" min="1" max="12"></div>
+        <div class="fld"><input id="biD" type="number" inputmode="numeric" placeholder="日" min="1" max="31"></div>
+      </div>
+      <button class="btn-primary" id="aiGo" style="margin-top:14px">相性を見る</button>
+    </div>
+    <div id="aishoResult"></div>
+  </div>
+
+</div>
+
+<div class="nav">
+  <button class="on" data-v="today"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.8"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"/></svg></span>今日</button>
+  <button data-v="plan"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 5.4 6.7 9.2M12 5.4l5.3 3.8M7 10.6l4.4 5.8M17 10.6l-4.4 5.8M6.6 9.5h10.8"/><circle cx="12" cy="4.1" r="1.7" fill="currentColor" stroke="none"/><circle cx="6" cy="9.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="9.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="17.6" r="1.7" fill="currentColor" stroke="none"/></svg></span>設計</button>
+  <button data-v="aisho"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="12" r="5.3"/><circle cx="15" cy="12" r="5.3"/></svg></span>相性</button>
+  <button data-v="review"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 9.2a8 8 0 1 1-1 4.6"/><path d="M3 4.4v4.8h4.8"/></svg></span>振り返り</button>
+</div>
+
+<!-- profile modal -->
+<div class="modal" id="profileModal"><div class="sheet">
+  <div class="grab"></div>
+  <h3>あなたの設定</h3>
+  <div class="note">生年月日から本命宿を計算します。データはこの端末内にのみ保存されます。</div>
+  <label class="fld">お名前（任意）<input id="inName" placeholder="例：NiSHI"></label>
+  <label class="fld">生年月日</label>
+  <div class="row3">
+    <div class="fld"><input id="inY" type="number" inputmode="numeric" placeholder="年" min="1900" max="2100"></div>
+    <div class="fld"><input id="inM" type="number" inputmode="numeric" placeholder="月" min="1" max="12"></div>
+    <div class="fld"><input id="inD" type="number" inputmode="numeric" placeholder="日" min="1" max="31"></div>
+  </div>
+  <button class="btn-primary" id="saveProfile">保存する</button>
+</div></div>
+
+<!-- soul tree node modal -->
+<div class="modal" id="nodeModal"><div class="sheet">
+  <div class="grab"></div>
+  <h3 id="nodeTitle">セフィラ</h3>
+  <div class="nodeq" id="nodeQ"></div>
+  <textarea id="nodeText" placeholder="ここに書き込む…"></textarea>
+  <button class="btn-primary" id="nodeSave">保存して閉じる</button>
+</div></div>
+
+<!-- mandala cell modal -->
+<div class="modal" id="cellModal"><div class="sheet">
+  <div class="grab"></div>
+  <h3 id="cellTitle">マンダラ</h3>
+  <label class="fld">このマスのテーマ<input id="cellThemeInput" placeholder="例：健康・学び・お金…"></label>
+  <div class="section-title" style="margin:14px 2px 4px">具体的な行動（タスク）</div>
+  <div class="mactions-list" id="cellActions"></div>
+  <div class="add-row">
+    <input id="cellActInput" placeholder="行動を追加…">
+    <button id="cellActBtn">追加</button>
+  </div>
+  <button class="btn-primary" id="cellClose">保存して閉じる</button>
+</div></div>
+
+<!-- day detail modal -->
+<div class="modal" id="dayModal"><div class="sheet">
+  <div class="grab"></div>
+  <div id="dayDetail"></div>
+  <button class="btn-ghost" id="dayClose">閉じる</button>
+</div></div>
+
+<!-- generic edit modal (使命・日付など) -->
+<div class="modal" id="editModal"><div class="sheet">
+  <div class="grab"></div>
+  <h3 id="editTitle"></h3>
+  <div class="nodeq" id="editHint"></div>
+  <textarea id="editText" placeholder="ここに入力…"></textarea>
+  <input id="editDate" type="date" style="display:none;width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;font-family:inherit;margin-top:8px">
+  <button class="btn-primary" id="editSave">保存して閉じる</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"lunar":[[0,12,0,20],[30,1,0,22],[59,2,0,24],[89,3,0,26],[118,4,0,1],[147,5,0,3],[177,6,0,5],[206,7,0,8],[236,8,0,11],[266,8,1,11],[295,9,0,13],[325,10,0,15],[355,11,0,18],[384,12,0,20],[414,1,0,22],[443,2,0,24],[473,3,0,26],[502,4,0,1],[531,5,0,3],[561,6,0,5],[590,7,0,8],[620,8,0,11],[649,9,0,13],[679,10,0,15],[709,11,0,18],[739,12,0,20],[768,1,0,22],[798,2,0,24],[827,3,0,26],[857,4,0,1],[886,5,0,3],[915,6,0,5],[945,7,0,8],[974,8,0,11],[1004,9,0,13],[1033,10,0,15],[1063,11,0,18],[1093,12,0,20],[1123,1,0,22],[1152,2,0,24],[1182,3,0,26],[1211,4,0,1],[1241,5,0,3],[1270,5,1,3],[1299,6,0,5],[1329,7,0,8],[1358,8,0,11],[1388,9,0,13],[1417,10,0,15],[1447,11,0,18],[1477,12,0,20],[1506,1,0,22],[1536,2,0,24],[1566,3,0,26],[1595,4,0,1],[1625,5,0,3],[1654,6,0,5],[1683,7,0,8],[1713,8,0,11],[1742,9,0,13],[1772,10,0,15],[1801,11,0,18],[1831,12,0,20],[1860,1,0,22],[1890,2,0,24],[1920,3,0,26],[1950,4,0,1],[1979,5,0,3],[2009,6,0,5],[2038,7,0,8],[2067,8,0,11],[2097,9,0,13],[2126,10,0,15],[2156,11,0,18],[2185,12,0,20],[2215,1,0,22],[2244,2,0,24],[2274,3,0,26],[2304,4,0,1],[2333,4,1,1],[2363,5,0,3],[2392,6,0,5],[2422,7,0,8],[2451,8,0,11],[2481,9,0,13],[2510,10,0,15],[2540,11,0,18],[2569,12,0,20],[2599,1,0,22],[2628,2,0,24],[2658,3,0,26],[2687,4,0,1],[2717,5,0,3],[2747,6,0,5],[2776,7,0,8],[2806,8,0,11],[2835,9,0,13],[2865,10,0,15],[2894,11,0,18],[2924,12,0,20],[2953,1,0,22],[2983,2,0,24],[3012,3,0,26],[3042,4,0,1],[3071,5,0,3],[3101,6,0,5],[3130,7,0,8],[3160,8,0,11],[3189,9,0,13],[3219,10,0,15],[3249,11,0,18],[3278,12,0,20],[3308,1,0,22],[3337,2,0,24],[3367,2,1,24],[3396,3,0,26],[3425,4,0,1],[3455,5,0,3],[3484,6,0,5],[3514,7,0,8],[3544,8,0,11],[3573,9,0,13],[3603,10,0,15],[3633,11,0,18],[3662,12,0,20],[3692,1,0,22],[3721,2,0,24],[3751,3,0,26],[3780,4,0,1],[3809,5,0,3],[3839,6,0,5],[3868,7,0,8],[3898,8,0,11],[3927,9,0,13],[3957,10,0,15],[3987,11,0,18],[4017,12,0,20],[4046,1,0,22],[4076,2,0,24],[4105,3,0,26],[4135,4,0,1],[4164,5,0,3],[4193,6,0,5],[4223,6,1,5],[4252,7,0,8],[4281,8,0,11],[4311,9,0,13],[4341,10,0,15],[4371,11,0,18],[4400,12,0,20],[4430,1,0,22],[4460,2,0,24],[4489,3,0,26],[4519,4,0,1],[4548,5,0,3],[4577,6,0,5],[4607,7,0,8],[4636,8,0,11],[4665,9,0,13],[4695,10,0,15],[4725,11,0,18],[4754,12,0,20],[4784,1,0,22],[4814,2,0,24],[4844,3,0,26],[4873,4,0,1],[4903,5,0,3],[4932,6,0,5],[4961,7,0,8],[4991,8,0,11],[5020,9,0,13],[5049,10,0,15],[5079,11,0,18],[5108,12,0,20],[5138,1,0,22],[5168,2,0,24],[5198,3,0,26],[5227,4,0,1],[5257,5,0,3],[5287,5,1,3],[5316,6,0,5],[5345,7,0,8],[5375,8,0,11],[5404,9,0,13],[5434,10,0,15],[5463,11,0,18],[5492,12,0,20],[5522,1,0,22],[5552,2,0,24],[5581,3,0,26],[5611,4,0,1],[5641,5,0,3],[5670,6,0,5],[5700,7,0,8],[5729,8,0,11],[5759,9,0,13],[5788,10,0,15],[5818,11,0,18],[5847,12,0,20],[5877,1,0,22],[5906,2,0,24],[5936,3,0,26],[5965,4,0,1],[5995,5,0,3],[6024,6,0,5],[6054,7,0,8],[6084,8,0,11],[6113,9,0,13],[6143,10,0,15],[6172,11,0,18],[6202,12,0,20],[6231,1,0,22],[6261,2,0,24],[6290,2,1,24],[6319,3,0,26],[6349,4,0,1],[6378,5,0,3],[6408,6,0,5],[6438,7,0,8],[6467,8,0,11],[6497,9,0,13],[6527,10,0,15],[6556,11,0,18],[6586,12,0,20],[6615,1,0,22],[6645,2,0,24],[6674,3,0,26],[6703,4,0,1],[6733,5,0,3],[6762,6,0,5],[6792,7,0,8],[6821,8,0,11],[6851,9,0,13],[6881,10,0,15],[6911,11,0,18],[6940,12,0,20],[6970,1,0,22],[6999,2,0,24],[7029,3,0,26],[7058,4,0,1],[7087,5,0,3],[7117,6,0,5],[7146,7,0,8],[7176,7,1,8],[7205,8,0,11],[7235,9,0,13],[7265,10,0,15],[7294,11,0,18],[7324,12,0,20],[7354,1,0,22],[7383,2,0,24],[7413,3,0,26],[7442,4,0,1],[7471,5,0,3],[7501,6,0,5],[7530,7,0,8],[7559,8,0,11],[7589,9,0,13],[7619,10,0,15],[7648,11,0,18],[7678,12,0,20],[7708,1,0,22],[7738,2,0,24],[7767,3,0,26],[7797,4,0,1],[7826,5,0,3],[7855,6,0,5],[7885,7,0,8],[7914,8,0,11],[7943,9,0,13],[7973,10,0,15],[8002,11,0,18],[8032,12,0,20],[8062,1,0,22],[8092,2,0,24],[8121,3,0,26],[8151,4,0,1],[8181,5,0,3],[8210,5,1,3],[8239,6,0,5],[8269,7,0,8],[8298,8,0,11],[8327,9,0,13],[8357,10,0,15],[8386,11,0,18],[8416,12,0,20],[8446,1,0,22],[8475,2,0,24],[8505,3,0,26],[8535,4,0,1],[8564,5,0,3],[8594,6,0,5],[8623,7,0,8],[8653,8,0,11],[8682,9,0,13],[8712,10,0,15],[8741,11,0,18],[8770,12,0,20],[8800,1,0,22],[8830,2,0,24],[8859,3,0,26],[8889,4,0,1],[8918,5,0,3],[8948,6,0,5],[8978,7,0,8],[9007,8,0,11],[9037,9,0,13],[9066,10,0,15],[9096,11,0,18],[9125,12,0,20],[9154,1,0,22],[9184,2,0,24],[9213,3,0,26],[9243,4,0,1],[9273,4,1,1],[9302,5,0,3],[9332,6,0,5],[9361,7,0,8],[9391,8,0,11],[9421,9,0,13],[9450,10,0,15],[9480,11,0,18],[9509,12,0,20],[9539,1,0,22],[9568,2,0,24],[9597,3,0,26],[9627,4,0,1],[9656,5,0,3],[9686,6,0,5],[9715,7,0,8],[9745,8,0,11],[9775,9,0,13],[9804,10,0,15],[9834,11,0,18],[9864,12,0,20],[9893,1,0,22],[9923,2,0,24],[9952,3,0,26],[9981,4,0,1],[10011,5,0,3],[10040,6,0,5],[10070,7,0,8],[10099,8,0,11],[10129,9,0,13],[10159,10,0,15],[10188,11,0,18],[10218,12,0,20],[10248,1,0,22],[10277,2,0,24],[10307,2,1,24],[10336,3,0,26],[10365,4,0,1],[10395,5,0,3],[10424,6,0,5],[10453,7,0,8],[10483,8,0,11],[10513,9,0,13],[10542,10,0,15],[10572,11,0,18],[10602,12,0,20],[10632,1,0,22],[10661,2,0,24],[10691,3,0,26],[10720,4,0,1],[10749,5,0,3],[10779,6,0,5],[10808,7,0,8],[10837,8,0,11],[10867,9,0,13],[10896,10,0,15],[10926,11,0,18],[10956,12,0,20],[10986,1,0,22],[11015,2,0,24],[11045,3,0,26],[11075,4,0,1],[11104,5,0,3],[11133,6,0,5],[11163,6,1,5],[11192,7,0,8],[11221,8,0,11],[11251,9,0,13],[11280,10,0,15],[11310,11,0,18],[11340,12,0,20],[11369,1,0,22],[11399,2,0,24],[11429,3,0,26],[11459,4,0,1],[11488,5,0,3],[11517,6,0,5],[11547,7,0,8],[11576,8,0,11],[11605,9,0,13],[11635,10,0,15],[11664,11,0,18],[11694,12,0,20],[11723,1,0,22],[11753,2,0,24],[11783,3,0,26],[11813,4,0,1],[11842,5,0,3],[11872,6,0,5],[11901,7,0,8],[11931,8,0,11],[11960,9,0,13],[11989,10,0,15],[12019,11,0,18],[12048,12,0,20],[12078,1,0,22],[12107,2,0,24],[12137,3,0,26],[12167,4,0,1],[12196,5,0,3],[12226,5,1,3],[12256,6,0,5],[12285,7,0,8],[12315,8,0,11],[12344,9,0,13],[12374,10,0,15],[12403,11,0,18],[12432,12,0,20],[12462,1,0,22],[12491,2,0,24],[12521,3,0,26],[12550,4,0,1],[12580,5,0,3],[12610,6,0,5],[12639,7,0,8],[12669,8,0,11],[12699,9,0,13],[12728,10,0,15],[12758,11,0,18],[12787,12,0,20],[12817,1,0,22],[12846,2,0,24],[12875,3,0,26],[12905,4,0,1],[12934,5,0,3],[12964,6,0,5],[12993,7,0,8],[13023,8,0,11],[13053,9,0,13],[13082,10,0,15],[13112,11,0,18],[13142,12,0,20],[13171,1,0,22],[13201,2,0,24],[13230,3,0,26],[13259,3,1,26],[13289,4,0,1],[13318,5,0,3],[13348,6,0,5],[13377,7,0,8],[13407,8,0,11],[13436,9,0,13],[13466,10,0,15],[13496,11,0,18],[13526,12,0,20],[13555,1,0,22],[13585,2,0,24],[13614,3,0,26],[13643,4,0,1],[13673,5,0,3],[13702,6,0,5],[13731,7,0,8],[13761,8,0,11],[13790,9,0,13],[13820,10,0,15],[13850,11,0,18],[13880,12,0,20],[13909,1,0,22],[13939,2,0,24],[13969,3,0,26],[13998,4,0,1],[14027,5,0,3],[14057,6,0,5],[14086,7,0,8],[14115,7,1,8],[14145,8,0,11],[14174,9,0,13],[14204,10,0,15],[14234,11,0,18],[14263,12,0,20],[14293,1,0,22],[14323,2,0,24],[14353,3,0,26],[14382,4,0,1],[14411,5,0,3],[14441,6,0,5],[14470,7,0,8],[14499,8,0,11],[14529,9,0,13],[14558,10,0,15],[14588,11,0,18],[14617,12,0,20],[14647,1,0,22],[14677,2,0,24],[14707,3,0,26],[14736,4,0,1],[14766,5,0,3],[14795,6,0,5],[14825,7,0,8],[14854,8,0,11],[14883,9,0,13],[14913,10,0,15],[14942,11,0,18],[14972,12,0,20],[15001,1,0,22],[15031,2,0,24],[15061,3,0,26],[15090,4,0,1],[15120,5,0,3],[15150,6,0,5],[15179,6,1,5],[15209,7,0,8],[15238,8,0,11],[15267,9,0,13],[15297,10,0,15],[15326,11,0,18],[15356,12,0,20],[15385,1,0,22],[15415,2,0,24],[15444,3,0,26],[15474,4,0,1],[15504,5,0,3],[15533,6,0,5],[15563,7,0,8],[15593,8,0,11],[15622,9,0,13],[15652,10,0,15],[15681,11,0,18],[15710,12,0,20],[15740,1,0,22],[15769,2,0,24],[15799,3,0,26],[15828,4,0,1],[15858,5,0,3],[15887,6,0,5],[15917,7,0,8],[15947,8,0,11],[15976,9,0,13],[16006,10,0,15],[16036,11,0,18],[16065,12,0,20],[16095,1,0,22],[16124,2,0,24],[16153,3,0,26],[16183,4,0,1],[16212,4,1,1],[16242,5,0,3],[16271,6,0,5],[16301,7,0,8],[16330,8,0,11],[16360,9,0,13],[16390,10,0,15],[16419,11,0,18],[16449,12,0,20],[16479,1,0,22],[16508,2,0,24],[16537,3,0,26],[16567,4,0,1],[16596,5,0,3],[16625,6,0,5],[16655,7,0,8],[16684,8,0,11],[16714,9,0,13],[16744,10,0,15],[16774,11,0,18],[16803,12,0,20],[16833,1,0,22],[16863,2,0,24],[16892,3,0,26],[16921,4,0,1],[16951,5,0,3],[16980,6,0,5],[17009,7,0,8],[17039,8,0,11],[17068,9,0,13],[17098,10,0,15],[17128,11,0,18],[17157,12,0,20],[17187,1,0,22],[17217,2,0,24],[17247,2,1,24],[17276,3,0,26],[17305,4,0,1],[17335,5,0,3],[17364,6,0,5],[17393,7,0,8],[17423,8,0,11],[17452,9,0,13],[17482,10,0,15],[17511,11,0,18],[17541,12,0,20],[17571,1,0,22],[17601,2,0,24],[17630,3,0,26],[17660,4,0,1],[17689,5,0,3],[17719,6,0,5],[17748,7,0,8],[17777,8,0,11],[17807,9,0,13],[17836,10,0,15],[17866,11,0,18],[17895,12,0,20],[17925,1,0,22],[17955,2,0,24],[17985,3,0,26],[18014,4,0,1],[18044,5,0,3],[18073,6,0,5],[18103,7,0,8],[18132,7,1,8],[18161,8,0,11],[18191,9,0,13],[18220,10,0,15],[18250,11,0,18],[18279,12,0,20],[18309,1,0,22],[18339,2,0,24],[18368,3,0,26],[18398,4,0,1],[18428,5,0,3],[18457,6,0,5],[18487,7,0,8],[18516,8,0,11],[18545,9,0,13],[18575,10,0,15],[18604,11,0,18],[18634,12,0,20],[18663,1,0,22],[18693,2,0,24],[18722,3,0,26],[18752,4,0,1],[18782,5,0,3],[18811,6,0,5],[18841,7,0,8],[18870,8,0,11],[18900,9,0,13],[18929,10,0,15],[18959,11,0,18],[18988,12,0,20],[19018,1,0,22],[19047,2,0,24],[19077,3,0,26],[19106,4,0,1],[19136,5,0,3],[19165,5,1,3],[19195,6,0,5],[19225,7,0,8],[19254,8,0,11],[19284,9,0,13],[19313,10,0,15],[19343,11,0,18],[19372,12,0,20],[19402,1,0,22],[19431,2,0,24],[19461,3,0,26],[19490,4,0,1],[19519,5,0,3],[19549,6,0,5],[19579,7,0,8],[19608,8,0,11],[19638,9,0,13],[19668,10,0,15],[19697,11,0,18],[19727,12,0,20],[19757,1,0,22],[19786,2,0,24],[19815,3,0,26],[19845,4,0,1],[19874,5,0,3],[19903,6,0,5],[19933,7,0,8],[19962,8,0,11],[19992,9,0,13],[20022,10,0,15],[20051,11,0,18],[20081,12,0,20],[20111,1,0,22],[20141,2,0,24],[20170,3,0,26],[20199,3,1,26],[20229,4,0,1],[20258,5,0,3],[20287,6,0,5],[20317,7,0,8],[20346,8,0,11],[20376,9,0,13],[20405,10,0,15],[20435,11,0,18],[20465,12,0,20],[20495,1,0,22],[20524,2,0,24],[20554,3,0,26],[20583,4,0,1],[20613,5,0,3],[20642,6,0,5],[20671,7,0,8],[20701,8,0,11],[20730,9,0,13],[20760,10,0,15],[20789,11,0,18],[20819,12,0,20],[20849,1,0,22],[20879,2,0,24],[20908,3,0,26],[20938,4,0,1],[20967,5,0,3],[20997,6,0,5],[21026,7,0,8],[21055,8,0,11],[21085,8,1,11],[21114,9,0,13],[21144,10,0,15],[21173,11,0,18],[21203,12,0,20],[21233,1,0,22],[21262,2,0,24],[21292,3,0,26],[21322,4,0,1],[21351,5,0,3],[21381,6,0,5],[21410,7,0,8],[21439,8,0,11],[21469,9,0,13],[21498,10,0,15],[21528,11,0,18],[21557,12,0,20],[21587,1,0,22],[21616,2,0,24],[21646,3,0,26],[21676,4,0,1],[21705,5,0,3],[21735,6,0,5],[21764,7,0,8],[21794,8,0,11],[21823,9,0,13],[21853,10,0,15],[21882,11,0,18],[21912,12,0,20],[21941,1,0,22],[21971,2,0,24],[22000,3,0,26],[22030,4,0,1],[22059,5,0,3],[22089,6,0,5],[22119,6,1,5],[22148,7,0,8],[22178,8,0,11],[22207,9,0,13],[22237,10,0,15],[22266,11,0,18],[22296,12,0,20],[22325,1,0,22],[22355,2,0,24],[22384,3,0,26],[22414,4,0,1],[22443,5,0,3],[22473,6,0,5],[22502,7,0,8],[22532,8,0,11],[22562,9,0,13],[22591,10,0,15],[22621,11,0,18],[22650,12,0,20],[22680,1,0,22],[22709,2,0,24],[22739,3,0,26],[22768,4,0,1],[22797,5,0,3],[22827,6,0,5],[22856,7,0,8],[22886,8,0,11],[22916,9,0,13],[22945,10,0,15],[22975,11,0,18],[23005,12,0,20],[23034,1,0,22],[23064,2,0,24],[23093,3,0,26],[23123,4,0,1],[23152,4,1,1],[23181,5,0,3],[23211,6,0,5],[23240,7,0,8],[23270,8,0,11],[23299,9,0,13],[23329,10,0,15],[23359,11,0,18],[23389,12,0,20],[23418,1,0,22],[23448,2,0,24],[23477,3,0,26],[23507,4,0,1],[23536,5,0,3],[23565,6,0,5],[23595,7,0,8],[23624,8,0,11],[23654,9,0,13],[23683,10,0,15],[23713,11,0,18],[23743,12,0,20],[23773,1,0,22],[23802,2,0,24],[23832,3,0,26],[23861,4,0,1],[23891,5,0,3],[23920,6,0,5],[23949,7,0,8],[23979,8,0,11],[24008,9,0,13],[24037,10,0,15],[24067,11,0,18],[24097,12,0,20],[24127,1,0,22],[24156,2,0,24],[24186,3,0,26],[24216,3,1,26],[24245,4,0,1],[24275,5,0,3],[24304,6,0,5],[24333,7,0,8],[24363,8,0,11],[24392,9,0,13],[24421,10,0,15],[24451,11,0,18],[24481,12,0,20],[24510,1,0,22],[24540,2,0,24],[24570,3,0,26],[24599,4,0,1],[24629,5,0,3],[24659,6,0,5],[24688,7,0,8],[24717,8,0,11],[24747,9,0,13],[24776,10,0,15],[24806,11,0,18],[24835,12,0,20],[24865,1,0,22],[24894,2,0,24],[24924,3,0,26],[24954,4,0,1],[24983,5,0,3],[25013,6,0,5],[25042,7,0,8],[25072,7,1,8],[25101,8,0,11],[25131,9,0,13],[25160,10,0,15],[25190,11,0,18],[25219,12,0,20],[25249,1,0,22],[25278,2,0,24],[25308,3,0,26],[25337,4,0,1],[25367,5,0,3],[25396,6,0,5],[25426,7,0,8],[25456,8,0,11],[25485,9,0,13],[25515,10,0,15],[25544,11,0,18],[25574,12,0,20],[25603,1,0,22],[25633,2,0,24],[25662,3,0,26],[25691,4,0,1],[25721,5,0,3],[25751,6,0,5],[25780,7,0,8],[25810,8,0,11],[25839,9,0,13],[25869,10,0,15],[25899,11,0,18],[25928,12,0,20],[25958,1,0,22],[25987,2,0,24],[26017,3,0,26],[26046,4,0,1],[26075,5,0,3],[26105,5,1,3],[26134,6,0,5],[26164,7,0,8],[26193,8,0,11],[26223,9,0,13],[26253,10,0,15],[26283,11,0,18],[26312,12,0,20],[26342,1,0,22],[26371,2,0,24],[26401,3,0,26],[26430,4,0,1],[26459,5,0,3],[26489,6,0,5],[26518,7,0,8],[26548,8,0,11],[26577,9,0,13],[26607,10,0,15],[26637,11,0,18],[26667,12,0,20],[26696,1,0,22],[26726,2,0,24],[26755,3,0,26],[26785,4,0,1],[26814,5,0,3],[26843,6,0,5],[26873,7,0,8],[26902,8,0,11],[26931,9,0,13],[26961,10,0,15],[26991,11,0,18],[27021,12,0,20],[27050,1,0,22],[27080,2,0,24],[27110,3,0,26],[27139,4,0,1],[27169,4,1,1],[27198,5,0,3],[27227,6,0,5],[27257,7,0,8],[27286,8,0,11],[27315,9,0,13],[27345,10,0,15],[27375,11,0,18],[27404,12,0,20],[27434,1,0,22],[27464,2,0,24],[27494,3,0,26],[27523,4,0,1],[27553,5,0,3],[27582,6,0,5],[27611,7,0,8],[27641,8,0,11],[27670,9,0,13],[27699,10,0,15],[27729,11,0,18],[27758,12,0,20],[27788,1,0,22],[27818,2,0,24],[27848,3,0,26],[27877,4,0,1],[27907,5,0,3],[27936,6,0,5],[27966,7,0,8],[27995,8,0,11],[28025,8,1,11],[28054,9,0,13],[28084,10,0,15],[28113,11,0,18],[28142,12,0,20],[28172,1,0,22],[28202,2,0,24],[28231,3,0,26],[28261,4,0,1],[28291,5,0,3],[28320,6,0,5],[28350,7,0,8],[28379,8,0,11],[28409,9,0,13],[28438,10,0,15],[28468,11,0,18],[28497,12,0,20],[28526,1,0,22],[28556,2,0,24],[28586,3,0,26],[28615,4,0,1],[28645,5,0,3],[28674,6,0,5],[28704,7,0,8],[28734,8,0,11],[28763,9,0,13],[28793,10,0,15],[28822,11,0,18],[28852,12,0,20],[28881,1,0,22],[28911,2,0,24],[28940,3,0,26],[28969,4,0,1],[28999,5,0,3],[29028,6,0,5],[29058,6,1,5],[29088,7,0,8],[29117,8,0,11],[29147,9,0,13],[29177,10,0,15],[29206,11,0,18],[29236,12,0,20],[29265,1,0,22],[29295,2,0,24],[29324,3,0,26],[29353,4,0,1],[29383,5,0,3],[29412,6,0,5],[29442,7,0,8],[29471,8,0,11],[29501,9,0,13],[29531,10,0,15],[29560,11,0,18],[29590,12,0,20],[29620,1,0,22],[29649,2,0,24],[29679,3,0,26],[29708,4,0,1],[29737,5,0,3],[29767,6,0,5],[29796,7,0,8],[29825,8,0,11],[29855,9,0,13],[29885,10,0,15],[29914,11,0,18],[29944,12,0,20],[29974,1,0,22],[30004,2,0,24],[30033,3,0,26],[30063,4,0,1],[30092,4,1,1],[30121,5,0,3],[30151,6,0,5],[30180,7,0,8],[30209,8,0,11],[30239,9,0,13],[30269,10,0,15],[30298,11,0,18],[30328,12,0,20],[30358,1,0,22],[30388,2,0,24],[30417,3,0,26],[30447,4,0,1],[30476,5,0,3],[30505,6,0,5],[30535,7,0,8],[30564,8,0,11],[30593,9,0,13],[30623,10,0,15],[30652,11,0,18],[30682,12,0,20],[30712,1,0,22],[30742,2,0,24],[30771,3,0,26],[30801,4,0,1],[30831,5,0,3],[30860,6,0,5],[30889,7,0,8],[30919,8,0,11],[30948,9,0,13],[30977,10,0,15],[31007,10,1,15],[31036,11,0,18],[31066,12,0,20],[31096,1,0,22],[31125,2,0,24],[31155,3,0,26],[31185,4,0,1],[31214,5,0,3],[31244,6,0,5],[31273,7,0,8],[31303,8,0,11],[31332,9,0,13],[31361,10,0,15],[31391,11,0,18],[31420,12,0,20],[31450,1,0,22],[31479,2,0,24],[31509,3,0,26],[31539,4,0,1],[31568,5,0,3],[31598,6,0,5],[31628,7,0,8],[31657,8,0,11],[31687,9,0,13],[31716,10,0,15],[31746,11,0,18],[31775,12,0,20],[31804,1,0,22],[31834,2,0,24],[31863,3,0,26],[31893,4,0,1],[31923,5,0,3],[31952,6,0,5],[31982,6,1,5],[32011,7,0,8],[32041,8,0,11],[32071,9,0,13],[32100,10,0,15],[32130,11,0,18],[32159,12,0,20],[32189,1,0,22],[32218,2,0,24],[32247,3,0,26],[32277,4,0,1],[32306,5,0,3],[32336,6,0,5],[32365,7,0,8],[32395,8,0,11],[32425,9,0,13],[32454,10,0,15],[32484,11,0,18],[32514,12,0,20],[32543,1,0,22],[32573,2,0,24],[32602,3,0,26],[32631,4,0,1],[32661,5,0,3],[32690,6,0,5],[32720,7,0,8],[32749,8,0,11],[32779,9,0,13],[32809,10,0,15],[32838,11,0,18],[32868,12,0,20],[32898,1,0,22],[32927,2,0,24],[32957,3,0,26],[32986,4,0,1],[33015,5,0,3],[33045,5,1,3],[33074,6,0,5],[33103,7,0,8],[33133,8,0,11],[33163,9,0,13],[33192,10,0,15],[33222,11,0,18],[33252,12,0,20],[33282,1,0,22],[33311,2,0,24],[33341,3,0,26],[33370,4,0,1],[33399,5,0,3],[33429,6,0,5],[33458,7,0,8],[33487,8,0,11],[33517,9,0,13],[33546,10,0,15],[33576,11,0,18],[33606,12,0,20],[33636,1,0,22],[33665,2,0,24],[33695,3,0,26],[33725,4,0,1],[33754,5,0,3],[33783,6,0,5],[33813,7,0,8],[33842,8,0,11],[33871,9,0,13],[33901,10,0,15],[33930,11,0,18],[33960,12,0,20],[33990,1,0,22],[34019,2,0,24],[34049,3,0,26],[34079,3,1,26],[34108,4,0,1],[34138,5,0,3],[34167,6,0,5],[34197,7,0,8],[34226,8,0,11],[34255,9,0,13],[34285,10,0,15],[34314,11,0,18],[34344,12,0,20],[34373,1,0,22],[34403,2,0,24],[34433,3,0,26],[34463,4,0,1],[34492,5,0,3],[34522,6,0,5],[34551,7,0,8],[34581,8,0,11],[34610,9,0,13],[34639,10,0,15],[34669,11,0,18],[34698,12,0,20],[34728,1,0,22],[34757,2,0,24],[34787,3,0,26],[34817,4,0,1],[34846,5,0,3],[34876,6,0,5],[34906,7,0,8],[34935,8,0,11],[34965,8,1,11],[34994,9,0,13],[35024,10,0,15],[35053,11,0,18],[35082,12,0,20],[35112,1,0,22],[35141,2,0,24],[35171,3,0,26],[35200,4,0,1],[35230,5,0,3],[35260,6,0,5],[35289,7,0,8],[35319,8,0,11],[35348,9,0,13],[35378,10,0,15],[35408,11,0,18],[35437,12,0,20],[35467,1,0,22],[35496,2,0,24],[35525,3,0,26],[35555,4,0,1],[35584,5,0,3],[35614,6,0,5],[35643,7,0,8],[35673,8,0,11],[35703,9,0,13],[35732,10,0,15],[35762,11,0,18],[35792,12,0,20],[35821,1,0,22],[35851,2,0,24],[35880,3,0,26],[35909,4,0,1],[35939,5,0,3],[35968,5,1,3],[35997,6,0,5],[36027,7,0,8],[36057,8,0,11],[36086,9,0,13],[36116,10,0,15],[36146,11,0,18],[36176,12,0,20],[36205,1,0,22],[36235,2,0,24],[36264,3,0,26],[36293,4,0,1],[36323,5,0,3],[36352,6,0,5],[36381,7,0,8],[36411,8,0,11],[36440,9,0,13],[36470,10,0,15],[36500,11,0,18],[36530,12,0,20],[36559,1,0,22],[36589,2,0,24],[36619,3,0,26],[36648,4,0,1],[36677,5,0,3],[36707,6,0,5],[36736,7,0,8],[36765,8,0,11],[36795,9,0,13],[36824,10,0,15],[36854,11,0,18],[36884,12,0,20],[36913,1,0,22],[36943,2,0,24],[36973,3,0,26],[37003,4,0,1],[37032,4,1,1],[37061,5,0,3],[37091,6,0,5],[37120,7,0,8],[37149,8,0,11],[37179,9,0,13],[37208,10,0,15],[37238,11,0,18],[37267,12,0,20],[37297,1,0,22],[37327,2,0,24],[37357,3,0,26],[37386,4,0,1],[37416,5,0,3],[37445,6,0,5],[37475,7,0,8],[37504,8,0,11],[37533,9,0,13],[37563,10,0,15],[37592,11,0,18],[37622,12,0,20],[37651,1,0,22],[37681,2,0,24],[37711,3,0,26],[37740,4,0,1],[37770,5,0,3],[37800,6,0,5],[37829,7,0,8],[37859,8,0,11],[37888,9,0,13],[37917,10,0,15],[37947,11,0,18],[37976,12,0,20],[38006,1,0,22],[38035,2,0,24],[38065,2,1,24],[38094,3,0,26],[38124,4,0,1],[38154,5,0,3],[38183,6,0,5],[38213,7,0,8],[38242,8,0,11],[38272,9,0,13],[38301,10,0,15],[38331,11,0,18],[38360,12,0,20],[38390,1,0,22],[38419,2,0,24],[38449,3,0,26],[38478,4,0,1],[38508,5,0,3],[38537,6,0,5],[38567,7,0,8],[38597,8,0,11],[38626,9,0,13],[38656,10,0,15],[38686,11,0,18],[38715,12,0,20],[38744,1,0,22],[38774,2,0,24],[38803,3,0,26],[38833,4,0,1],[38862,5,0,3],[38892,6,0,5],[38921,7,0,8],[38951,7,1,8],[38980,8,0,11],[39010,9,0,13],[39040,10,0,15],[39069,11,0,18],[39099,12,0,20],[39129,1,0,22],[39158,2,0,24],[39187,3,0,26],[39217,4,0,1],[39246,5,0,3],[39275,6,0,5],[39305,7,0,8],[39334,8,0,11],[39364,9,0,13],[39394,10,0,15],[39424,11,0,18],[39453,12,0,20],[39483,1,0,22],[39513,2,0,24],[39542,3,0,26],[39571,4,0,1],[39601,5,0,3],[39630,6,0,5],[39659,7,0,8],[39689,8,0,11],[39718,9,0,13],[39748,10,0,15],[39778,11,0,18],[39807,12,0,20],[39837,1,0,22],[39867,2,0,24],[39897,3,0,26],[39926,4,0,1],[39955,5,0,3],[39985,5,1,3],[40014,6,0,5],[40043,7,0,8],[40073,8,0,11],[40102,9,0,13],[40132,10,0,15],[40161,11,0,18],[40191,12,0,20],[40221,1,0,22],[40251,2,0,24],[40280,3,0,26],[40310,4,0,1],[40339,5,0,3],[40369,6,0,5],[40398,7,0,8],[40427,8,0,11],[40457,9,0,13],[40486,10,0,15],[40516,11,0,18],[40545,12,0,20],[40575,1,0,22],[40605,2,0,24],[40634,3,0,26],[40664,4,0,1],[40694,5,0,3],[40723,6,0,5],[40753,7,0,8],[40782,8,0,11],[40811,9,0,13],[40841,10,0,15],[40870,11,0,18],[40900,12,0,20],[40929,1,0,22],[40959,2,0,24],[40988,3,0,26],[41018,4,0,1],[41048,4,1,1],[41078,5,0,3],[41107,6,0,5],[41137,7,0,8],[41166,8,0,11],[41195,9,0,13],[41225,10,0,15],[41254,11,0,18],[41284,12,0,20],[41313,1,0,22],[41343,2,0,24],[41372,3,0,26],[41402,4,0,1],[41432,5,0,3],[41461,6,0,5],[41491,7,0,8],[41520,8,0,11],[41550,9,0,13],[41579,10,0,15],[41609,11,0,18],[41638,12,0,20],[41668,1,0,22],[41697,2,0,24],[41727,3,0,26],[41756,4,0,1],[41786,5,0,3],[41815,6,0,5],[41845,7,0,8],[41874,8,0,11],[41904,9,0,13],[41934,9,1,13],[41963,10,0,15],[41993,11,0,18],[42022,12,0,20],[42052,1,0,22],[42081,2,0,24],[42111,3,0,26],[42140,4,0,1],[42169,5,0,3],[42199,6,0,5],[42228,7,0,8],[42258,8,0,11],[42288,9,0,13],[42318,10,0,15],[42347,11,0,18],[42377,12,0,20],[42406,1,0,22],[42436,2,0,24],[42465,3,0,26],[42495,4,0,1],[42524,5,0,3],[42553,6,0,5],[42583,7,0,8],[42612,8,0,11],[42642,9,0,13],[42672,10,0,15],[42701,11,0,18],[42731,12,0,20],[42761,1,0,22],[42790,2,0,24],[42820,3,0,26],[42849,4,0,1],[42879,5,0,3],[42908,6,0,5],[42937,6,1,5],[42967,7,0,8],[42996,8,0,11],[43026,9,0,13],[43055,10,0,15],[43085,11,0,18],[43115,12,0,20],[43145,1,0,22],[43174,2,0,24],[43204,3,0,26],[43233,4,0,1],[43263,5,0,3],[43292,6,0,5],[43321,7,0,8],[43351,8,0,11],[43380,9,0,13],[43410,10,0,15],[43439,11,0,18],[43469,12,0,20],[43499,1,0,22],[43529,2,0,24],[43558,3,0,26],[43588,4,0,1],[43617,5,0,3],[43647,6,0,5],[43676,7,0,8],[43705,8,0,11],[43735,9,0,13],[43764,10,0,15],[43794,11,0,18],[43823,12,0,20],[43853,1,0,22],[43883,2,0,24],[43912,3,0,26],[43942,4,0,1],[43972,4,1,1],[44001,5,0,3],[44031,6,0,5],[44060,7,0,8],[44089,8,0,11],[44119,9,0,13],[44148,10,0,15],[44178,11,0,18],[44207,12,0,20],[44237,1,0,22],[44266,2,0,24],[44296,3,0,26],[44326,4,0,1],[44355,5,0,3],[44385,6,0,5],[44414,7,0,8],[44444,8,0,11],[44473,9,0,13],[44503,10,0,15],[44532,11,0,18],[44562,12,0,20],[44591,1,0,22],[44621,2,0,24],[44650,3,0,26],[44680,4,0,1],[44709,5,0,3],[44739,6,0,5],[44769,7,0,8],[44798,8,0,11],[44828,9,0,13],[44857,10,0,15],[44887,11,0,18],[44916,12,0,20],[44946,1,0,22],[44975,2,0,24],[45005,2,1,24],[45034,3,0,26],[45064,4,0,1],[45093,5,0,3],[45123,6,0,5],[45152,7,0,8],[45182,8,0,11],[45212,9,0,13],[45241,10,0,15],[45271,11,0,18],[45300,12,0,20],[45330,1,0,22],[45359,2,0,24],[45389,3,0,26],[45418,4,0,1],[45447,5,0,3],[45477,6,0,5],[45506,7,0,8],[45536,8,0,11],[45566,9,0,13],[45595,10,0,15],[45625,11,0,18],[45655,12,0,20],[45684,1,0,22],[45714,2,0,24],[45743,3,0,26],[45773,4,0,1],[45802,5,0,3],[45831,6,0,5],[45861,6,1,5],[45890,7,0,8],[45920,8,0,11],[45949,9,0,13],[45979,10,0,15],[46009,11,0,18],[46039,12,0,20],[46068,1,0,22],[46098,2,0,24],[46127,3,0,26],[46157,4,0,1],[46186,5,0,3],[46215,6,0,5],[46245,7,0,8],[46274,8,0,11],[46304,9,0,13],[46333,10,0,15],[46363,11,0,18],[46393,12,0,20],[46423,1,0,22],[46452,2,0,24],[46482,3,0,26],[46511,4,0,1],[46541,5,0,3],[46570,6,0,5],[46599,7,0,8],[46629,8,0,11],[46658,9,0,13],[46687,10,0,15],[46717,11,0,18],[46747,12,0,20],[46777,1,0,22],[46806,2,0,24],[46836,3,0,26],[46866,4,0,1],[46895,5,0,3],[46925,5,1,3],[46954,6,0,5],[46983,7,0,8],[47013,8,0,11],[47042,9,0,13],[47071,10,0,15],[47101,11,0,18],[47131,12,0,20],[47160,1,0,22],[47190,2,0,24],[47220,3,0,26],[47249,4,0,1],[47279,5,0,3],[47309,6,0,5],[47338,7,0,8],[47367,8,0,11],[47397,9,0,13],[47426,10,0,15],[47455,11,0,18],[47485,12,0,20],[47515,1,0,22],[47544,2,0,24],[47574,3,0,26],[47603,4,0,1],[47633,5,0,3],[47663,6,0,5],[47692,7,0,8],[47722,8,0,11],[47751,9,0,13],[47781,10,0,15],[47810,11,0,18],[47840,12,0,20],[47869,1,0,22],[47899,2,0,24],[47928,3,0,26],[47958,3,1,26],[47987,4,0,1],[48017,5,0,3],[48046,6,0,5],[48076,7,0,8],[48106,8,0,11],[48135,9,0,13],[48165,10,0,15],[48194,11,0,18],[48224,12,0,20],[48253,1,0,22],[48283,2,0,24],[48312,3,0,26],[48341,4,0,1],[48371,5,0,3],[48400,6,0,5],[48430,7,0,8],[48460,8,0,11],[48489,9,0,13],[48519,10,0,15],[48549,11,0,18],[48578,12,0,20],[48608,1,0,22],[48637,2,0,24],[48667,3,0,26],[48696,4,0,1],[48725,5,0,3],[48755,6,0,5],[48784,7,0,8],[48814,8,0,11],[48843,9,0,13],[48873,10,0,15],[48903,11,0,18],[48933,11,1,18],[48962,12,0,20],[48992,1,0,22],[49021,2,0,24],[49051,3,0,26],[49080,4,0,1],[49109,5,0,3],[49139,6,0,5],[49168,7,0,8],[49198,8,0,11],[49227,9,0,13],[49257,10,0,15],[49287,11,0,18],[49317,12,0,20],[49346,1,0,22],[49376,2,0,24],[49405,3,0,26],[49435,4,0,1],[49464,5,0,3],[49493,6,0,5],[49523,7,0,8],[49552,8,0,11],[49581,9,0,13],[49611,10,0,15],[49641,11,0,18],[49670,12,0,20],[49700,1,0,22],[49730,2,0,24],[49760,3,0,26],[49789,4,0,1],[49819,5,0,3],[49848,6,0,5],[49877,6,1,5],[49907,7,0,8],[49936,8,0,11],[49965,9,0,13],[49995,10,0,15],[50025,11,0,18],[50054,12,0,20],[50084,1,0,22],[50114,2,0,24],[50144,3,0,26],[50173,4,0,1],[50203,5,0,3],[50232,6,0,5],[50261,7,0,8],[50291,8,0,11],[50320,9,0,13],[50349,10,0,15],[50379,11,0,18],[50408,12,0,20],[50438,1,0,22],[50468,2,0,24],[50498,3,0,26],[50527,4,0,1],[50557,5,0,3],[50586,6,0,5],[50616,7,0,8],[50645,8,0,11],[50675,9,0,13],[50704,10,0,15],[50733,11,0,18],[50763,12,0,20],[50792,1,0,22],[50822,2,0,24],[50852,3,0,26],[50881,4,0,1],[50911,5,0,3],[50941,5,1,3],[50970,6,0,5],[51000,7,0,8],[51029,8,0,11],[51059,9,0,13],[51088,10,0,15],[51118,11,0,18],[51147,12,0,20],[51176,1,0,22],[51206,2,0,24],[51235,3,0,26],[51265,4,0,1],[51295,5,0,3],[51324,6,0,5],[51354,7,0,8],[51384,8,0,11],[51413,9,0,13],[51443,10,0,15],[51472,11,0,18],[51502,12,0,20],[51531,1,0,22],[51561,2,0,24],[51590,3,0,26],[51619,4,0,1],[51649,5,0,3],[51678,6,0,5],[51708,7,0,8],[51738,8,0,11],[51767,9,0,13],[51797,10,0,15],[51827,11,0,18],[51856,12,0,20],[51886,1,0,22],[51915,2,0,24],[51945,2,1,24],[51974,3,0,26],[52003,4,0,1],[52033,5,0,3],[52062,6,0,5],[52092,7,0,8],[52121,8,0,11],[52151,9,0,13],[52181,10,0,15],[52210,11,0,18],[52240,12,0,20],[52270,1,0,22],[52299,2,0,24],[52329,3,0,26],[52358,4,0,1],[52387,5,0,3],[52417,6,0,5],[52446,7,0,8],[52475,8,0,11],[52505,9,0,13],[52535,10,0,15],[52564,11,0,18],[52594,12,0,20],[52624,1,0,22],[52654,2,0,24],[52683,3,0,26],[52713,4,0,1],[52742,5,0,3],[52771,6,0,5],[52801,7,0,8],[52830,7,1,8],[52859,8,0,11],[52889,9,0,13],[52918,10,0,15],[52948,11,0,18],[52978,12,0,20],[53008,1,0,22],[53038,2,0,24],[53067,3,0,26],[53097,4,0,1],[53126,5,0,3],[53155,6,0,5],[53185,7,0,8],[53214,8,0,11],[53243,9,0,13],[53273,10,0,15],[53302,11,0,18],[53332,12,0,20],[53362,1,0,22],[53392,2,0,24],[53421,3,0,26],[53451,4,0,1],[53481,5,0,3],[53510,6,0,5],[53539,7,0,8],[53569,8,0,11],[53598,9,0,13],[53627,10,0,15],[53657,11,0,18],[53686,12,0,20],[53716,1,0,22],[53746,2,0,24],[53775,3,0,26],[53805,4,0,1],[53835,5,0,3],[53864,5,1,3],[53894,6,0,5],[53923,7,0,8],[53953,8,0,11],[53982,9,0,13],[54011,10,0,15],[54041,11,0,18],[54070,12,0,20],[54100,1,0,22],[54129,2,0,24],[54159,3,0,26],[54189,4,0,1],[54218,5,0,3],[54248,6,0,5],[54278,7,0,8],[54307,8,0,11],[54337,9,0,13],[54366,10,0,15],[54396,11,0,18],[54425,12,0,20],[54454,1,0,22],[54484,2,0,24],[54513,3,0,26],[54543,4,0,1],[54572,5,0,3],[54602,6,0,5],[54632,7,0,8],[54661,8,0,11],[54691,9,0,13],[54721,10,0,15],[54750,11,0,18],[54780,12,0,20],[54809,1,0,22],[54839,2,0,24],[54868,3,0,26],[54897,3,1,26],[54927,4,0,1],[54956,5,0,3],[54986,6,0,5],[55015,7,0,8],[55045,8,0,11],[55075,9,0,13],[55104,10,0,15],[55134,11,0,18],[55164,12,0,20],[55193,1,0,22],[55223,2,0,24],[55252,3,0,26],[55281,4,0,1],[55311,5,0,3],[55340,6,0,5],[55370,7,0,8],[55399,8,0,11],[55429,9,0,13],[55458,10,0,15],[55488,11,0,18],[55518,12,0,20],[55548,1,0,22],[55577,2,0,24],[55607,3,0,26],[55636,4,0,1],[55665,5,0,3],[55695,6,0,5],[55724,7,0,8],[55753,8,0,11],[55783,8,1,11],[55813,9,0,13],[55842,10,0,15],[55872,11,0,18],[55902,12,0,20],[55932,1,0,22],[55961,2,0,24],[55991,3,0,26],[56020,4,0,1],[56049,5,0,3],[56079,6,0,5],[56108,7,0,8],[56137,8,0,11],[56167,9,0,13],[56196,10,0,15],[56226,11,0,18],[56256,12,0,20],[56286,1,0,22],[56315,2,0,24],[56345,3,0,26],[56375,4,0,1],[56404,5,0,3],[56433,6,0,5],[56463,7,0,8],[56492,8,0,11],[56521,9,0,13],[56551,10,0,15],[56580,11,0,18],[56610,12,0,20],[56640,1,0,22],[56669,2,0,24],[56699,3,0,26],[56729,4,0,1],[56758,5,0,3],[56788,6,0,5],[56817,6,1,5],[56847,7,0,8],[56876,8,0,11],[56905,9,0,13],[56935,10,0,15],[56964,11,0,18],[56994,12,0,20],[57023,1,0,22],[57053,2,0,24],[57083,3,0,26],[57113,4,0,1],[57142,5,0,3],[57172,6,0,5],[57201,7,0,8],[57231,8,0,11],[57260,9,0,13],[57289,10,0,15],[57319,11,0,18],[57348,12,0,20],[57378,1,0,22],[57407,2,0,24],[57437,3,0,26],[57467,4,0,1],[57496,5,0,3],[57526,6,0,5],[57555,7,0,8],[57585,8,0,11],[57615,9,0,13],[57644,10,0,15],[57673,11,0,18],[57703,12,0,20],[57732,1,0,22],[57762,2,0,24],[57791,3,0,26],[57821,4,0,1],[57850,4,1,1],[57880,5,0,3],[57910,6,0,5],[57939,7,0,8],[57969,8,0,11],[57998,9,0,13],[58028,10,0,15],[58058,11,0,18],[58087,12,0,20],[58116,1,0,22],[58146,2,0,24],[58175,3,0,26],[58205,4,0,1],[58234,5,0,3],[58264,6,0,5],[58293,7,0,8],[58323,8,0,11],[58353,9,0,13],[58382,10,0,15],[58412,11,0,18],[58442,12,0,20],[58471,1,0,22],[58501,2,0,24],[58530,3,0,26],[58559,4,0,1],[58589,5,0,3],[58618,6,0,5],[58647,7,0,8],[58677,8,0,11],[58707,9,0,13],[58736,10,0,15],[58766,11,0,18],[58796,12,0,20],[58826,1,0,22],[58855,2,0,24],[58885,3,0,26],[58914,3,1,26],[58943,4,0,1],[58973,5,0,3],[59002,6,0,5],[59031,7,0,8],[59061,8,0,11],[59090,9,0,13],[59120,10,0,15],[59150,11,0,18],[59180,12,0,20],[59209,1,0,22],[59239,2,0,24],[59269,3,0,26],[59298,4,0,1],[59327,5,0,3],[59357,6,0,5],[59386,7,0,8],[59415,8,0,11],[59445,9,0,13],[59474,10,0,15],[59504,11,0,18],[59534,12,0,20],[59563,1,0,22],[59593,2,0,24],[59623,3,0,26],[59652,4,0,1],[59682,5,0,3],[59711,6,0,5],[59741,7,0,8],[59770,7,1,8],[59799,8,0,11],[59829,9,0,13],[59858,10,0,15],[59888,11,0,18],[59917,12,0,20],[59947,1,0,22],[59977,2,0,24],[60007,3,0,26],[60036,4,0,1],[60066,5,0,3],[60095,6,0,5],[60125,7,0,8],[60154,8,0,11],[60183,9,0,13],[60213,10,0,15],[60242,11,0,18],[60272,12,0,20],[60301,1,0,22],[60331,2,0,24],[60361,3,0,26],[60390,4,0,1],[60420,5,0,3],[60450,6,0,5],[60479,7,0,8],[60509,8,0,11],[60538,9,0,13],[60567,10,0,15],[60597,11,0,18],[60626,12,0,20],[60656,1,0,22],[60685,2,0,24],[60715,3,0,26],[60744,4,0,1],[60774,5,0,3],[60804,5,1,3],[60833,6,0,5],[60863,7,0,8],[60892,8,0,11],[60922,9,0,13],[60951,10,0,15],[60981,11,0,18],[61010,12,0,20],[61040,1,0,22],[61069,2,0,24],[61099,3,0,26],[61128,4,0,1],[61158,5,0,3],[61187,6,0,5],[61217,7,0,8],[61247,8,0,11],[61276,9,0,13],[61306,10,0,15],[61335,11,0,18],[61365,12,0,20],[61394,1,0,22],[61424,2,0,24],[61453,3,0,26],[61483,4,0,1],[61512,5,0,3],[61542,6,0,5],[61571,7,0,8],[61601,8,0,11],[61630,9,0,13],[61660,10,0,15],[61690,11,0,18],[61719,12,0,20],[61749,1,0,22],[61779,2,0,24],[61808,3,0,26],[61837,4,0,1],[61867,4,1,1],[61896,5,0,3],[61925,6,0,5],[61955,7,0,8],[61984,8,0,11],[62014,9,0,13],[62044,10,0,15],[62074,11,0,18],[62103,12,0,20],[62133,1,0,22],[62163,2,0,24],[62192,3,0,26],[62221,4,0,1],[62251,5,0,3],[62280,6,0,5],[62309,7,0,8],[62339,8,0,11],[62368,9,0,13],[62398,10,0,15],[62428,11,0,18],[62457,12,0,20],[62487,1,0,22],[62517,2,0,24],[62547,3,0,26],[62576,4,0,1],[62605,5,0,3],[62635,6,0,5],[62664,7,0,8],[62693,8,0,11],[62723,8,1,11],[62752,9,0,13],[62782,10,0,15],[62811,11,0,18],[62841,12,0,20],[62871,1,0,22],[62901,2,0,24],[62930,3,0,26],[62960,4,0,1],[62989,5,0,3],[63019,6,0,5],[63048,7,0,8],[63077,8,0,11],[63107,9,0,13],[63136,10,0,15],[63166,11,0,18],[63195,12,0,20],[63225,1,0,22],[63255,2,0,24],[63284,3,0,26],[63314,4,0,1],[63344,5,0,3],[63373,6,0,5],[63403,7,0,8],[63432,8,0,11],[63461,9,0,13],[63491,10,0,15],[63520,11,0,18],[63550,12,0,20],[63579,1,0,22],[63609,2,0,24],[63638,3,0,26],[63668,4,0,1],[63698,5,0,3],[63727,6,0,5],[63757,6,1,5],[63786,7,0,8],[63816,8,0,11],[63845,9,0,13],[63875,10,0,15],[63904,11,0,18],[63934,12,0,20],[63963,1,0,22],[63993,2,0,24],[64022,3,0,26],[64052,4,0,1],[64081,5,0,3],[64111,6,0,5],[64141,7,0,8],[64170,8,0,11],[64200,9,0,13],[64229,10,0,15],[64259,11,0,18],[64288,12,0,20],[64318,1,0,22],[64347,2,0,24],[64377,3,0,26],[64406,4,0,1],[64436,5,0,3],[64465,6,0,5],[64495,7,0,8],[64524,8,0,11],[64554,9,0,13],[64584,10,0,15],[64613,11,0,18],[64643,12,0,20],[64672,1,0,22],[64702,2,0,24],[64731,3,0,26],[64761,4,0,1],[64790,4,1,1],[64819,5,0,3],[64849,6,0,5],[64878,7,0,8],[64908,8,0,11],[64938,9,0,13],[64968,10,0,15],[64997,11,0,18],[65027,12,0,20],[65056,1,0,22],[65086,2,0,24],[65115,3,0,26],[65145,4,0,1],[65174,5,0,3],[65203,6,0,5],[65233,7,0,8],[65262,8,0,11],[65292,9,0,13],[65322,10,0,15],[65351,11,0,18],[65381,12,0,20],[65411,1,0,22],[65440,2,0,24],[65470,3,0,26],[65499,4,0,1],[65529,5,0,3],[65558,6,0,5],[65587,7,0,8],[65617,8,0,11],[65646,9,0,13],[65676,10,0,15],[65705,11,0,18],[65735,12,0,20],[65765,1,0,22],[65795,2,0,24],[65824,3,0,26],[65854,3,1,26],[65883,4,0,1],[65913,5,0,3],[65942,6,0,5],[65971,7,0,8],[66001,8,0,11],[66030,9,0,13],[66060,10,0,15],[66089,11,0,18],[66119,12,0,20],[66149,1,0,22],[66179,2,0,24],[66208,3,0,26],[66238,4,0,1],[66267,5,0,3],[66297,6,0,5],[66326,7,0,8],[66355,8,0,11],[66385,9,0,13],[66414,10,0,15],[66443,11,0,18],[66473,12,0,20],[66503,1,0,22],[66532,2,0,24],[66562,3,0,26],[66592,4,0,1],[66622,5,0,3],[66651,6,0,5],[66681,7,0,8],[66710,7,1,8],[66739,8,0,11],[66769,9,0,13],[66798,10,0,15],[66828,11,0,18],[66857,12,0,20],[66887,1,0,22],[66916,2,0,24],[66946,3,0,26],[66976,4,0,1],[67005,5,0,3],[67035,6,0,5],[67064,7,0,8],[67094,8,0,11],[67123,9,0,13],[67153,10,0,15],[67182,11,0,18],[67212,12,0,20],[67241,1,0,22],[67271,2,0,24],[67300,3,0,26],[67330,4,0,1],[67359,5,0,3],[67389,6,0,5],[67419,7,0,8],[67448,8,0,11],[67478,9,0,13],[67507,10,0,15],[67537,11,0,18],[67566,12,0,20],[67596,1,0,22],[67625,2,0,24],[67655,3,0,26],[67684,4,0,1],[67713,5,0,3],[67743,5,1,3],[67773,6,0,5],[67802,7,0,8],[67832,8,0,11],[67862,9,0,13],[67891,10,0,15],[67921,11,0,18],[67950,12,0,20],[67980,1,0,22],[68009,2,0,24],[68039,3,0,26],[68068,4,0,1],[68097,5,0,3],[68127,6,0,5],[68156,7,0,8],[68186,8,0,11],[68216,9,0,13],[68245,10,0,15],[68275,11,0,18],[68305,12,0,20],[68334,1,0,22],[68364,2,0,24],[68393,3,0,26],[68423,4,0,1],[68452,5,0,3],[68481,6,0,5],[68511,7,0,8],[68540,8,0,11],[68570,9,0,13],[68599,10,0,15],[68629,11,0,18],[68659,12,0,20],[68689,1,0,22],[68718,2,0,24],[68748,3,0,26],[68777,4,0,1],[68807,4,1,1],[68836,5,0,3],[68865,6,0,5],[68895,7,0,8],[68924,8,0,11],[68953,9,0,13],[68983,10,0,15],[69013,11,0,18],[69043,12,0,20],[69073,1,0,22],[69102,2,0,24],[69132,3,0,26],[69161,4,0,1],[69191,5,0,3],[69220,6,0,5],[69249,7,0,8],[69279,8,0,11],[69308,9,0,13],[69337,10,0,15],[69367,11,0,18],[69397,12,0,20],[69426,1,0,22],[69456,2,0,24],[69486,3,0,26],[69516,4,0,1],[69545,5,0,3],[69575,6,0,5],[69604,7,0,8],[69633,8,0,11],[69663,8,1,11],[69692,9,0,13],[69721,10,0,15],[69751,11,0,18],[69781,12,0,20],[69810,1,0,22],[69840,2,0,24],[69870,3,0,26],[69899,4,0,1],[69929,5,0,3],[69958,6,0,5],[69988,7,0,8],[70017,8,0,11],[70047,9,0,13],[70076,10,0,15],[70105,11,0,18],[70135,12,0,20],[70165,1,0,22],[70194,2,0,24],[70224,3,0,26],[70253,4,0,1],[70283,5,0,3],[70313,6,0,5],[70342,7,0,8],[70372,8,0,11],[70401,9,0,13],[70431,10,0,15],[70460,11,0,18],[70490,12,0,20],[70519,1,0,22],[70549,2,0,24],[70578,3,0,26],[70608,4,0,1],[70637,5,0,3],[70667,6,0,5],[70696,6,1,5],[70726,7,0,8],[70756,8,0,11],[70785,9,0,13],[70815,10,0,15],[70844,11,0,18],[70874,12,0,20],[70903,1,0,22],[70933,2,0,24],[70962,3,0,26],[70991,4,0,1],[71021,5,0,3],[71050,6,0,5],[71080,7,0,8],[71110,8,0,11],[71139,9,0,13],[71169,10,0,15],[71199,11,0,18],[71228,12,0,20],[71258,1,0,22],[71287,2,0,24],[71317,3,0,26],[71346,4,0,1],[71375,5,0,3],[71405,6,0,5],[71434,7,0,8],[71464,8,0,11],[71493,9,0,13],[71523,10,0,15],[71553,11,0,18],[71583,12,0,20],[71612,1,0,22],[71642,2,0,24],[71671,3,0,26],[71701,4,0,1],[71730,4,1,1],[71759,5,0,3],[71789,6,0,5],[71818,7,0,8],[71848,8,0,11],[71877,9,0,13],[71907,10,0,15],[71937,11,0,18],[71966,12,0,20],[71996,1,0,22],[72026,2,0,24],[72055,3,0,26],[72085,4,0,1],[72114,5,0,3],[72143,6,0,5],[72173,7,0,8],[72202,8,0,11],[72231,9,0,13],[72261,10,0,15],[72291,11,0,18],[72320,12,0,20],[72350,1,0,22],[72380,2,0,24],[72410,3,0,26],[72439,4,0,1],[72469,5,0,3],[72498,6,0,5],[72527,7,0,8],[72557,8,0,11],[72586,9,0,13],[72615,10,0,15],[72645,11,0,18],[72675,12,0,20],[72704,1,0,22],[72734,2,0,24],[72764,2,1,24],[72794,3,0,26],[72823,4,0,1],[72853,5,0,3],[72882,6,0,5],[72911,7,0,8],[72941,8,0,11],[72970,9,0,13],[72999,10,0,15],[73029,11,0,18],[73058,12,0,20],[73088,1,0,22],[73118,2,0,24],[73148,3,0,26],[73177,4,0,1],[73207,5,0,3],[73236,6,0,5],[73266,7,0,8],[73295,8,0,11],[73325,9,0,13],[73354,10,0,15],[73383,11,0,18],[73413,12,0,20]],"shuku":["昴","畢","觜","参","井","鬼","柳","星","張","翼","軫","角","亢","氐","房","心","尾","箕","斗","女","虚","危","室","壁","奎","婁","胃"],"relMean":{"命":{"self":"似た者同士で相乗効果があるが摩擦も起きやすい。程よい距離感を見つけるとうまくいく。運命共同体で運気も似て、ゆるぎない関係を築ける。","fortune":"運気は不安定なターニングポイント。生まれ直し・初心に戻る時。心静かに行動を慎み、大きな決断・大きな買い物は避ける。"},"栄":{"self":"プラスを与え合うWin-Winの関係。発展的に尊重し合い、スロースターターでも長続き。ラッキーパーソン的。自分から見て栄の人はドキドキ感はないが、親しみが信頼に変わり、ゆっくり育まれ理解し合える関係。","fortune":"オールマイティに栄光・繁栄を意味する絶好調の運気。新しいことへのチャレンジや契約事もOK。自分を見せていくのも良い。"},"親":{"self":"発展的に尊重し合うWin-Winの関係。自分から見て親の人は第一印象のインパクトが薄いが、ゆっくり好意が芽生え、協力し合うことで絆が深まっていく。","fortune":"友人・知人に恵まれ、仕事もプライベートも人間関係が円滑に。出会いが大きな縁を生み、幸運度が上昇する。"},"友":{"self":"精神性のつながりが強く、優しい気持ちで癒し癒され楽しい時間を共有できる（ラブラブ的）。お金・ビジネス・利害には注意。自分から見て友の人は心が開いて何でも話したくなり、時間を忘れて楽しいが、拘束がなくダラダラしがち。","fortune":"友好的になれば友人・知人から良い結果を受ける。人との交流が幸運を呼び、コミュニケーション運が上昇。人気が高まる時期。"},"衰":{"self":"自分から見て衰の人は、何かと世話を焼きたくなり面倒を見たくなる相手。そうする内に自分も癒され相手も心地よい。ただ常に相手に合わせ、エネルギーを使い果たしがち。とはいえ悪い関係ではない。","fortune":"心身ともに無理は禁物。メンテナンスと充電の時。だるさを感じるので、学びにいそしむと脳が集中的に活性化される。"},"安":{"self":"出会った瞬間から惹かれ合う強い引力（磁石のプラスとマイナス）。濃く関わると愛憎も生まれるので注意。わかって付き合えば学び合い成長する。自分から見て安の人は無条件に受け入れてくれる、抱擁したくなる心地よい相手で、主導権はあなた。言いすぎ・わがままは亀裂のもと。","fortune":"心身ともに安心・安全。大きな存在に守護されるような心地よさ。移動・旅行・引っ越しなど動くことで運気が上がり、金運上昇も。"},"壊":{"self":"自分から見て壊の人は、強烈なパッションで強く惹かれ、損得を考えず行動してしまう。恋は盲目のようにのめり込み傷つくことも。見方を変えれば相手が自分を磨いてくれている（磨かれすぎ注意）。","fortune":"壊れる・終わりを遂げる時。破壊作用が不本意な形で来やすいので、先に断捨離・デトックス・心身の浄化を。新たな準備期と捉え、人には受け身・謙虚に。"},"成":{"self":"違う考え方や価値観が刺激になり発展し合える関係。自分から見て成の人は、違う言動に刺激を受けつつ、自分にないものを教えてくれ補ってくれる有益な相手。","fortune":"成功・成就の運気。積み重ね・準備してきたことが実り成果となる。仕事・学問・学習に励む時期。契約事・資格取得にも良い。"},"危":{"self":"違う考え方や価値観が互いに刺激になり、ビジネスや目標へ邁進できる切磋琢磨の関係（ビジネスパーソン的）。自分から見て危の人は予想外の言動に驚かされリスクもあるが、見ていない世界観を見せてくれる。干渉しすぎないのがコツ。","fortune":"リスクのある吉凶混合の時。仕事運は良好だが多忙でエキサイティング。対立・衝突・危険が潜むので注意しましょう。"},"業":{"self":"命と同じく魂の繋がりが強い運命共同体。使命と役割を持って一緒に成し遂げる。自分から見て業の人は、無償の愛で尽くしてくれる関係。","fortune":"業＝過去。過去生の宿題が出てくるターニングポイントで運気は不安定。大事な案件は先延ばしせず、少し無理してでもやり遂げるのが大事。"},"胎":{"self":"命・業と同じく魂の繋がりが強い運命共同体。自分から見て胎の人は、不思議なほど尽くしたくなる関係（業と相互関係）。","fortune":"胎＝未来・胎動。新しいものを生み出す種まきの時期。準備・計画・目標の見直しをすると幸運を招く。家族を大事にする時期。"}},"ryohan":{"1":[6,16,7,17],"2":[1,14,2,15],"3":[3,12,4,13],"4":[5,10,6,11],"5":[7,8,1,9],"6":[2,6,3,7],"7":[5,3,6,4],"8":[2,27,0,99],"9":[4,25,5,26],"10":[6,23,7,24],"11":[2,20,3,21],"12":[4,18,5,19]},"desc":{"昴宿":{"full":"【性格】\n☆有能でプライドの高い交際上手な人。\n\n言葉の表現や態度がエレガントな人です。そして、頭の中でまとめる能力に長けています。知的な魅力に溢れ、頭脳も明晰です。また、芸術的で都会的なセンスがあり、本物志向の美学を持ち、物事の本質を見極めて、威風堂々とした姿勢で存在感を主張していきます。\n\n【適職】\n開拓精神があり、また、信念に忠実なので、その分野でスペシャリストになる役割があります。目上から寵愛を受け、下からは慕われる「引き立て運」を持つあなたは、社会的に恵まれた位置について特性を活かす事が出来ます。美容関係・ファッション関係・文芸関係・芸術関係・執筆業・評論・翻訳関係に適正があります。五感の味覚を発揮して、飲食・食品関係・パティシエ・シェフも吉。\n\n\n【お金】\n周囲からの引き立て運に恵まれているあなたは、信頼ある行動と謙虚な態度から、手元に財が引き寄せられてきます。そして、気持ちも優雅な立ち居振る舞いを美徳としガツガツしてないので、お金に対しての執着心が少ないようです。しかし、昂ぶる感情が抑えきれないときがあるのでギャンブルなどはご法度です。また、頭脳明晰ですが、固執する面があるのでエキセントリックな感性を持つ人物との交流が大事。情報のやり取りをする中で、斬新なアイデアが閃いて金運も上昇していくでしょう。\n\n【健康】\n偏頭痛・高血圧に悩まされやすく、さらにはそこから脳溢血・脳梗塞になるケースも少なくないので注意しましょう。ストレスに弱い体質なので、神経性の病気や自律神経失調症を引き起こしたり、神経性胃炎になりやすい傾向もあるので普段から健康管理が必要です。\n\n【恋愛】\nセレブ志向で外見にこだわるあなたは、恋のハードルはかなり高めです。快楽主義的な反面、簡単には他者を受け入れられないという、ちょっと複雑な恋愛観の持ち主です。上昇志向でプライドが高く、選り好みが激しいあなたは、自分にとってプラスになる異性との交際を強く望む傾向があります。理想はかなり高く、ルックスと実力を持ち合わせた異性を好みますが、好きな相手には冷たくしてしまうなど矛盾した面も。損得を考えずにさまざまな分野の異性とお付き合いすること。また、勝手な思い込みをやめて、相手の欠点を受け入れることも必要。傷つくことも恐れないで、もっと積極的に相手の胸に飛び込みましょう。\n\n【開運】\n柔軟な感性を備えること。繊細な感覚と鋭敏な頭脳を持ち合わせているので、どうしても自分の考えに執着してしまう傾向があります。しかし、折角授かった能力を有効的に使うことがポイントです。ひとつとして、他人の助けを借りる方法も得策。異業種交流会やセミナーなどに出向くことで、人脈形成も広がり、援助を得て、持っている運気が倍増されていくでしょう。","short":"☆有能でプライドの高い交際上手な人。\n\n言葉の表現や態度がエレガントな人です。そして、頭の中でまとめる能力に長けています。知的な魅力に溢れ、頭脳も明晰です。また、芸術的で都会的なセンスがあり、本物志向の美学を持ち、物事の本質を見極めて、威風堂々とした姿勢で存在感を主張していきます。"},"畢宿":{"full":"【性格】\n☆心身共に強く、目標を達成する。孤独を恐れない自立の人。\n\n見た感じの印象は穏やかで愛情豊かなイメージの人です。しかし、内面は体力と精神力の強さに恵まれています。そして、すべてにおいて最後までやり遂げる忍耐力があります。自分のスケールで物事を理解する傾向があるので、人の意見が耳に入らず、頑固で自己中心と思われるときも。年齢と共に実力を蓄え、大器晩成型の運勢です。\n\n【適職】\n職人的なこだわりを持って、地道な努力を続けて行くので、その分野で能力を発揮し頭角をあらわすでしょう。好きな事に対しては思う存分没頭できる根気強さとバイタリティーの持ち主です。 「蓄財運」に恵まれているあなたは、お金を動かす仕事として財務・経理・銀行員・税理士・会計士・経営コンサルタントに適性があります。その他に、研究職・技術職・芸術・芸能・美術工芸・美容・香料・園芸・畜産も吉。\n\n【お金】\n増財運に恵まれているあなたは、お金の管理に関してはピカイチの才能を持っています。それゆえ、ギャンブルなどの一攫千金を夢見るよりは地道に働いて貯めていくタイプです。財布の紐を緩めて友人や家族と、ゆったりした交流の時間を分け合うことで財運はさらに上向きに。ただ、資金運用も抜け目なく堅実である一方、尻込み傾向があるので大胆な発想をする人物との交流で、お金に関してのラッキーヒントが得られるかも。\n\n【健康】\n気力、体力に恵まれ、生命力溢れる強靭な肉体の持ち主。病気に対しても強い抵抗力を持っています。しかし頭痛・脳出血・脳梗塞など脳の病気や額の怪我には注意が必要。心身ともに頑強なのでギリギリまで身体を酷使して、過労にならないように気をつけましょう。\n\n【恋愛】\n温かみにあふれ、穏やかなあなたは、母性的な魅力と包容力も持ち合わせているので異性からモテるタイプです。一つ一つの恋愛に対して、じっくりと時間をかけて育みます。好きな相手には最後まで愛を貫きますが、ときに相手にしつこくまとわりつくことも。独占欲を抑え、大地に根をはる大木のような、ゆるぎない強さを身につけることです。自分が愛したぶん、相手からも深く愛されたいと願うのではなく、無償の愛を注ぐことが必要です。\n\n【開運】\nものごとに執着しないで、思いきって手放してみましょう。追い詰められるほどに、パワーを発揮する力を持っているので、熱意が強まるほど発奮して、磁石のようにチャンスを引き寄せるでしょう。また、発想が固定化されやすい面があるので、強烈な個性を持っている人との出会いを通して、今までにない領域に踏み込みましょう。そうすることで、あなたを新しい世界へと導いてくれるでしょう。","short":"☆心身共に強く、目標を達成する。孤独を恐れない自立の人。\n\n見た感じの印象は穏やかで愛情豊かなイメージの人です。しかし、内面は体力と精神力の強さに恵まれています。そして、すべてにおいて最後までやり遂げる忍耐力があります。自分のスケールで物事を理解する傾向があるので、人の意見が耳に入らず、頑固で自己中心と思われるときも。年齢と共に実力を蓄え、大器晩成型の運勢です。"},"觜宿":{"full":"【性格】\n☆説得力のある話術と知識で道を切り開いていく人。\n\n知的で論理的、礼儀正しく温厚な面と、アクの強い部分の内と外の二面性があります。エネルギーが旺盛で、饒舌で流れるような会話力と説得力のあるトークに長けています。何かに夢中になると、もう一方では冷静になり、豊富な知識を使って抜け目なく立ち回り、計算高い面を得意とすることも。慎重で思慮深く、はめを外す事なく適切な対応ができます。\n\n【適職】\n自分の信念に忠実なので、一つの技術を取得して、その分野で成長と発展を遂げるでしょう。また、頭の回転が早く、緻密な計算と巧みな対応を得意としています。「物質運」を持つあなたは、社会的地位の高い、弁護士・行政書士・税理士・学者・政治家に適性があります。知識と情報に関係ある、作家・評論家・出版・広告関係・秘書・マネージャーも吉。\n\n【お金】\n思慮深く観察力の鋭いあなたは、高い計算能力でキャッチした最先端の情報を活かすことができ、それをもとにして資産運用することが得意です。そして、もともとが蓄財運に恵まれているので、お金がお金を呼び大きな財を成すことができるでしょう。ただ、非常に神経質な面があるので、天真爛漫に振る舞う人物と交流することが必要です。相手の価値観を共有することで、思考回路が転換されて金運アップのアイデアが閃めくでしょう。\n\n【健康】\n眉間にしわを寄せて考え込む傾向が強いので、偏頭痛・高血圧・顔面のケガにも注意が必要。神経が細やかなので、対人ストレスからアレルギー性鼻炎・喘息・大腸の病気として身体に出てくるようです。病気をすると長引く傾向があるので、日頃の健康管理をしっかり行うことが大切です。\n\n【恋愛】\n容姿に恵まれた人が多く、上品な素振りを見せるのが上手なあなたは、異性からのアプローチは多いですが恋愛に対して慎重で、相手の素性がはっきりしないうちは、今一歩踏み込めずにブレーキをかけてしまう面があります。でも一方で、恋の策略を練る駆け引き上手な部分もあり、周囲から見ると「いったいどちらが本当の姿なのか」困惑してしまうことがあるかもしれません。\n\n【開運】\n持ち前の美的感性を磨くこと。そして、さまざまなことができるタイプなので、最後までやり遂げること。たとえば、美の情報を得たら実際にその場所に行ってみて体感しましょう。美容に触れ、美のグルメを味わい、美術や芸術に触れることで知識も深まり、奇抜なアイデアが閃くことも。得た情報を周囲にアピールすることで、美の幸運を手に入れることができるでしょう。","short":"☆説得力のある話術と知識で道を切り開いていく人。\n\n知的で論理的、礼儀正しく温厚な面と、アクの強い部分の内と外の二面性があります。エネルギーが旺盛で、饒舌で流れるような会話力と説得力のあるトークに長けています。何かに夢中になると、もう一方では冷静になり、豊富な知識を使って抜け目なく立ち回り、計算高い面を得意とすることも。慎重で思慮深く、はめを外す事なく適切な対応ができます。"},"参宿":{"full":"【性格】\n☆独創的な発想で人々を喜ばせる。改革精神あふれる冒険好きな人。\n\nエネルギーとパワーに満ち溢れ、とても大胆で明るく、荒ぶる風のように、意のままに駆け抜ける強さを持ち、自信に漲っている人です。頭の回転が早く、情報キャッチが得意なので、コミュニケーション能力を発揮しながら、交友関係を拡大させます。また、愛嬌とピュアな魅力があり、人徳があるので、人に愛されて出世する運勢を持っています。\n\n【適職】\nユニークな発想と情報収集力に長けているので、人々のニーズを伝達する役割があります。アイデアを活かしながら持ち前の商才を発揮できます。誰に対しても明るく陽気で人当たりが良い「人気運」と鮮やかな表現で知識を伝播する「対人運」を持つあなたは、美容師・放送・出版・旅行・教育関係・情報伝達業に適性があります。その他に、美容関係・ファッション関係も吉。\n\n【お金】\n流行に敏感なあなたは、時代の流れを見極めながらその時々で有利な方法を見つけて、着実にお金を増やしていく財テク上手と言えます。また、お金を稼ぐ能力に長けていますが、刺激を求めて浪費する癖があるので、堅実な金銭感覚を持つ人物と交流を。そうすると、散財も減ってしっかりとしたマネーセンスが身につき運気もアップするでしょう。\n\n【健康】\n基本的には体力に恵まれていますが、アレルギー性鼻炎・気管支喘息に気をつけて。体力を過信しての不摂生などから、肝臓・膀胱炎などに。体重増加による足のケガや関節症を重症化させることも。また、交通事故には注意を。\n\n【恋愛】\n積極的に新鮮な愛を求めるあなたは、ウイットに富んだ会話術で相手を惹きつけ魅了します。ときに、毒舌で辛辣な発言で相手を傷つけてしまうことも。どろどろした恋愛には無縁で、別れも実にアッサリしていて未練がありません。自分の話より聴き上手になりましょう。そして、相手の闇の部分もしっかり受け止めることができれば、真実の愛に目覚め、恋の勝利者になれるでしょう。\n\n\n\n【開運】\nリベラルな考えに徹すること。ただ危険性も併せもつので、堅実な物の考え方ができると、しっかりとしたマネーセンスが身につきます。たとえば、証券会社や投資コンサルタントなどから、情報の収集をすることで大きなヒントが得られるでしょう。また、肝が据わっているあなたなので、常に何かにチャレンジする精神で冒険の心を持ち続けることが、運気アップとなるでしょう。","short":"☆独創的な発想で人々を喜ばせる。改革精神あふれる冒険好きな人。\n\nエネルギーとパワーに満ち溢れ、とても大胆で明るく、荒ぶる風のように、意のままに駆け抜ける強さを持ち、自信に漲っている人です。頭の回転が早く、情報キャッチが得意なので、コミュニケーション能力を発揮しながら、交友関係を拡大させます。また、愛嬌とピュアな魅力があり、人徳があるので、人に愛されて出世する運勢を持っています。"},"井宿":{"full":"【性格】\n☆議論好き。知性と話術に長けた人。\n\nコミュニュケーション能力が高く、知的でシャープな頭脳を持ちドライな雰囲気を漂わせながらも、奉仕精神のある人です。人と話すことが大好きで、理性と感情を絶妙にコントロールする会話能力に長けています。また、内面は気前が良く、情報や物を惜しまず与えます。人に尽くす精神ときめ細かい心優しい面を活かしましょう。\n\n【適職】\n交渉力に不可欠な能弁さと情報収集力に長けています。また機転が利き、状況を的確に把握する能力があります。包容力と奉仕精神が活かせる分野の仕事にも向いています。「所有運」に恵まれるあなたは、頭脳プレイを発揮し、目標達成に向けて、高い精度でマスターしていく実力があるので、企画営業・貿易関係・外交官に適性があります。生活に密着した、服飾・食品・飲食関係・住宅・インテリア・サービス業も吉。\n\n【お金】\n物質運・所有運に恵まれているあなたは、自然と手元にお金が集まってきます。さらに、適切な方法を選んで蓄財を殖やす努力も熱心。ただ、自分の選択が思うようにいかないと、人に依存してしまい、むやみに相談して悪意のある相手に利用される危険性も潜んでいます。また、知識が豊富なだけに合理的に判断してしまう傾向が。権威ある人物との交流を深めることで、大きな学びとなり知識欲も満たされて金運も上昇するでしょう。\n\n【健康】\n風邪・肺炎・アレルギー性鼻炎・喘息に始まり呼吸器系の病気に注意。神経質なので過度のストレスによる胃潰瘍・肝臓病などさまざまな部分に疾患として表れる可能性が。また、ストレス性の難聴といった神経症の発症にも注意が必要でしょう。\n\n【恋愛】\n場の空気を読むのが得意なあなたは、スマートな会話術で異性を惹きつけます。ただ、相手が夢中になると、そのアプローチをサラリとかわします。理想が高く、現実的な面があるので、完璧な恋愛を求めるでしょう。甘えたり、突き放したりと恋の駆け引きも絶妙。本気で人を好きになれず、恋に打算が働いてしまうことも。相手の出方を待つより、自ら相手の胸に飛び込むことが必要です。失敗を恐れずにチャレンジすれば、目先の不安は不思議と消え去っていくでしょう。\n\n【開運】\n依存心をおさえて独自の考えを優先すること。マルチの才能を持ち、情報を吸収することが得意なので自信を持ちましょう。あなたの持つ知識や情報は必ず人のためになるので発信することが運気アップの秘訣に。その情報を流すことで、自分が欲しいと思っている情報も自然に返ってきます。また、学ぶことが大好きなあなたなので、資格取得にチャレンジすれば、持ち前の知識欲も満たされるでしょう。","short":"☆議論好き。知性と話術に長けた人。\n\nコミュニュケーション能力が高く、知的でシャープな頭脳を持ちドライな雰囲気を漂わせながらも、奉仕精神のある人です。人と話すことが大好きで、理性と感情を絶妙にコントロールする会話能力に長けています。また、内面は気前が良く、情報や物を惜しまず与えます。人に尽くす精神ときめ細かい心優しい面を活かしましょう。"},"鬼宿":{"full":"【性格】\n☆好きなことにのめり込む。個性豊かな発想をする自由な人。\n\n楽天的で親しみやすく、好奇心旺盛。相手の気持ちをくみ取り、自分のことのように感じられる優しい人です。暖かく相手を包み込む包容力と、テレパシーのような直感力が備わっているので、人を安心させるタイプです。\n\n【適職】\n豊かな感受性を持ち、人にやさしいボランティア精神が備わっています。慈愛に満ちて包容力を持つあなたは「地位運」に恵まれ、気遣いを得意とする医療関係・福祉関係・コンサルタント関係の仕事に適性があります。自由な発想力を活かして、旅行業・飲食業・ファッション業界・インテリア業界・海外関係も吉。\n\n【お金】\nインスピレーションに恵まれたあなたは、的確にお金に結びつくことを選択する不思議な能力が備わっています。そんな、あなたの面倒見のよさを利用しようとする人は世の中にいるので、気乗りしないお金にまつわる話については、丁重にお断りすることが肝心。直感力の鋭さに加えて、物事の本質を見通す優れた判断力を身につけることが必要。それには判断力に優れた、見識のある人物と交流すればその能力が身につき金運もアップするでしょう。\n\n【健康】\n鼻炎や骨折に注意。日頃から風邪予防対策をこまめにして気をつけましょう。自分で思うほど身体が丈夫ではないので、定期的な診断が大事です。栄養過多からくる糖尿病・痛風・肝障害に注意。情緒的に不安定になりやすく、極度の緊張が続くと心臓に負担が。\n\n【恋愛】\n母性的で世話好き、インスピレーションに恵まれたあなたは、恋愛に対しても、何よりもフィーリングを優先するタイプです。ただ、「自分のものにしたい」といった独占欲に苦しむことが多く、恋人が生活の中心になる傾向も。相手の行動に干渉しすぎないように注意しましょう。また、自分だけで判断せずに、相手の話は最後まで聴きましょう。気が乗らないと、ろくすっぽ返事もしない態度は、衰運を招くことになるので注意して。\n\n【開運】\nあれこれと思い悩まないこと。感受性が細やかで、自由気ままな感性と柔軟な考えができるだけに、突然に考えが変わって周囲を振り回してしまいがちに。オピニオンリーダー的な見識人との交流や集まりに出向きましょう。その中で、様々な人の能力を見聴きすれば、物事の本質を見通す優れた判断力が身につくでしょう。また、思い悩んで負の連鎖を膨らませず、ポジティブな思考に切り替えることができると、持ち前の鋭い不思議なカンが活きて運気上昇になるでしょう。","short":"☆好きなことにのめり込む。個性豊かな発想をする自由な人。\n\n楽天的で親しみやすく、好奇心旺盛。相手の気持ちをくみ取り、自分のことのように感じられる優しい人です。暖かく相手を包み込む包容力と、テレパシーのような直感力が備わっているので、人を安心させるタイプです。"},"柳宿":{"full":"【性格】\n☆好きなことに熱意と情熱をもって取り組む人。\n\n一見は穏やかで家庭的な温厚タイプに見えます。しかし、内面は激しく奥深い感情とミステリアスな魅力が混在している人です。頭の回転と人の心を読み取るスベに長けていて交渉上手です。また、鋭敏な理論を持ち、強い意志と向上心で、我が道を進みます。\n\n【適職】\n親しみやすく、奉仕の精神が備わっています。快適でくつろげる住空間を造りだす役割があり、母性、包容力を活かせる分野に向いています。また、「交渉運」を持つあなたは、コミュニケーションやコラボレーションが必要な接客業・衣食住・サービス業全般に適性があります。専門性を活かす、弁護士・政治家・ジャーナリストも吉。\n\n【お金】\nもっとも財産運に恵まれているあなたは、不思議なツキの力でお金が集まってくる傾向があるようです。反面、お金に敏感になって打算的な面が露出すると、財布の紐を緩めたがらないときも。そんなときは、ささやかな気持ちを形にしてお返しすることで、持っている運がさらに上昇します。ただ、一つのことに夢中になりすぎて、有効的な時間を無駄につかうことも多いでしょう。それゆえ、巧みに時間を使いこなす人物と交流すれば、活きたお金の使いかたが身について、仲間もお金も殖やすことができるでしょう。\n\n【健康】\n疲れが歯の疾患として表面化する傾向が。自分が思っているほど丈夫ではないのに、暴飲暴食が原因で、肝臓・消化器系・糖尿病を引き起こしがち。感情の起伏が激しく、ストレスを溜め込むと、血圧・心臓に負担をかけたり、脳溢血など重病を患うことにも。女性は、子宮などの生殖器系の病気も心配です。\n\n【恋愛】\n相手の心を読み解くことが抜群なあなたは、セックスアピールも持ち合わせているので異性にモテるタイプです。ただ、飽きっぽくって持続力がない一面があり、新しい刺激ばかり求めたり、刹那的な快楽にふけったり、中途半端な恋愛を繰り返す傾向が。献身的な優しさで相手を包み込む包容力があり、心の内側を読み取ろうとするスベに長けているので、相手の中身をじっくり見据えることが大事です。\n\n【開運】\n有効な時間の使い方を習慣づけること。あれこれ手をつけ過ぎずにすることが能力アップの秘訣。好きこそ物の上手なれで、幅広く手を出すより、専門的なスキルを身に付けることが得策。あなたは、温かく受容的に人を受け入れながら、しなやかな対応を得意とする交渉術に長けています。そのことから、大きなチャンスや人との絆が深まり、そのコミュニケーション術が運気アップの引き金になるでしょう。","short":"☆好きなことに熱意と情熱をもって取り組む人。\n\n一見は穏やかで家庭的な温厚タイプに見えます。しかし、内面は激しく奥深い感情とミステリアスな魅力が混在している人です。頭の回転と人の心を読み取るスベに長けていて交渉上手です。また、鋭敏な理論を持ち、強い意志と向上心で、我が道を進みます。"},"星宿":{"full":"【性格】\n☆強い信念を持って夢に向かって働き続ける人。\n\n芯の強いたくましさと、妥協知らずの義理堅い親分肌の気質を持ち、神聖なものを愛する深い精神性が宿った人です。どんなに時間がかかっても夢や理想、さらに、目標に向かって邁進し、必ずや実現させる強さを持ち合わせています。\n\n【適職】\n実力で勝負する世界や創造性と活動力を要求される業界に向いています。 縁の下の力持ち的な役割があり、大変な勉強家なので、個性を活かせる分野で頭角を表します。不動産関係、建築関係に適性があります。芸能界・マスコミ関係・広告関係・自営業に吉。実力勝負の、研究職・政治的活動も得策。\n\n【お金】\nもっとも強い不動産運の持ち主であるあなたは、何かをしなくても不動産を手に入れたり、頼りになる人物にも恵まれます。しかし、スリリングな展開を好むところがあるので、かなりの資金を費やして株を購入したり、または、ギャンブルにはまってしまうことも。お金に関しては、押しの強い面は極力抑え、増財には慎重で確実な方法を選ぶことが大切。権力に媚びないリーダー的な人物と交流を深めることが金運のきっかけとなるでしょう。\n\n【健康】\n健康に恵まれ、体のメンテナンスに気をつけていれば長寿を全うする持ち主。しかし、ワーカホリックになる傾向なので、しつこい肩や首のコリは、高血圧・動脈硬化・血行障害・脳梗塞など重大な疾患の引き金に。咽頭炎・声帯ポリープ・ムチウチなど、首にまつわる病気に注意して。\n\n【恋愛】\n熱烈な恋愛を好むあなたは、常に自分が主役であることを望みます。あなたの恋愛遍歴は、まるで映画をみているかのようにとてもドラマティックです。好き嫌いが激しく、相手を支配したいという欲求が強いので、真剣に自分の欲望を異性にぶつけるでしょう。浮気や遊びの恋はできず、ときには異性を疲れさせてしまうことも。そして、理想が高いことを自覚しましょう。勝手に熱くなって舞い上がったり、自分の欲求ばかり優先するなど、相手不在の恋に陥らないようにして。時間をかけてお互いの愛情を深めましょう。\n\n【開運】\n豊かなサービス精神を発揮すること。信頼した仲間に手厚く接する使命感とリーダーシップ力に長けているので、まばゆい才能は鮮明な輝きを放ちます。大きな力を持つ権力者の後ろ盾を得ると何事もコンスタントに。理想と夢に向かって、持ち前の創造性、指導力、統率力を思う存分発揮できれば、素晴らしい人生を手に入れることができるでしょう。","short":"☆強い信念を持って夢に向かって働き続ける人。\n\n芯の強いたくましさと、妥協知らずの義理堅い親分肌の気質を持ち、神聖なものを愛する深い精神性が宿った人です。どんなに時間がかかっても夢や理想、さらに、目標に向かって邁進し、必ずや実現させる強さを持ち合わせています。"},"張宿":{"full":"【性格】\n☆話術で人を魅了し、自分を上手に演出できる華やかな人。\n\n生命力にあふれ、華がありゴージャス。そして、堂々と自分を主張し、その大胆で素直な振る舞いは、どこにいても主役の存在を醸し出します。自己表現力や独特のトーク術に優れ、常にエネルギッシュで人を束ねる統率力も持ち合わせています。\n\n【適職】\n計画したことは必ず実行に移し、創作活動に抜群の才覚を発揮します。社会の中で勝ち抜いていける能力があるので、リーダーとしての役割があります。人から注目を集める分野の仕事に向いています。人を集める能力があり、自己アピールが上手なので、クリエイティブな表現を通して、社会的な成功と栄光を手に入れる運の持ち主です。芸能関係・スポーツ界・政治界・プロデュース＆ディレクション業務など、実力で勝負する世界に適性があります。また、大衆的なものや娯楽といったエンターテイメント業界も吉。\n\n【お金】\nもっとも強い援助運を持つあなたは、周囲に気を配り人の面倒を良く見て、気前の良さを心がけることで人との結びつきがより強くなります。運にしても財産にしても、人に引き立てられ人から受け継いで行くタイプです。それゆえ、人と関わらない一人ギャンブルなどは衰運を招くので注意が必要。また、率直な言動と大胆な振る舞いが隠せないので、あなたを理解してくれる知的で穏やかな人と交流することで持っている金運がさらにアップするでしょう。\n\n【健康】\n人目を気にするあまり、常に緊張感が張りつめてしまい頑固な肩こり体質になっています。基本的には長寿ですが、自分の体力を過信する傾向があり、血行障害からくる高血圧・高脂血症などの生活習慣病に注意。また、中年以降に体調を患うリスクが高いので、動脈硬化・くも膜下・心臓病などに注意が必要。\n\n【恋愛】\n自分を飾る術に長け、贅沢が似合うあなたは、こせこせとした恋愛には縁がなく、劇的で刺激的な愛を好む傾向があります。また、ヒロイン願望が強く、多くの異性の注目を浴びチヤホヤされることで、その魅力を倍増していくでしょう。プレゼントやデートの内容で相手を測る癖があるので、その点には注意して。また、支配欲を抑えて多角的な視点を持つことも必要。相手の考えを受け入れ、自分にとって大切な人には十分な配慮を心がけましょう。\n\n【開運】\n自分の魅力を表現すること。どんなときでも堂々と、自信を持って主張できるあなたなので、人から見られている意識を持って、内面も外面もさらに磨きをかけることが大事。ひかり輝くように自分を表現することで、周囲からの賞賛を得られ、賛美の声を聴くことができます。そうすると、多くの人から有形無形のサポートを得て、輝きが増して運気も倍増するでしょう。","short":"☆話術で人を魅了し、自分を上手に演出できる華やかな人。\n\n生命力にあふれ、華がありゴージャス。そして、堂々と自分を主張し、その大胆で素直な振る舞いは、どこにいても主役の存在を醸し出します。自己表現力や独特のトーク術に優れ、常にエネルギッシュで人を束ねる統率力も持ち合わせています。"},"翼宿":{"full":"【性格】\n☆頼れるリーダーで世界を自由自在に飛び回る人。\n\n物事の本質を見抜き正義感と強い意志で信念を貫きとおします。遠い処に飛んで行く、羽ばたく強さとやり抜く自信を持っています海外に縁があり、もともと才能に恵まれ音楽や映画、華やかなものが大好きなエンターテイメント性も備わっています。\n\n【適職】\n人目を引く存在感と、物怖じしない度胸があるため社会の中で勝ち抜いていけるでしょう。着々と堅実に目標を実現させ、緻密な頭脳プレイの持ち主です。プランニング業・コンサルタント業・教育関係・出版関係・医療衛生・看護士・薬剤師・秘書に適性があります。「海外運」を生かすのであれば貿易関係・翻訳・語学関係も適職です。交通機関・情報関係も吉。\n\n【お金】\n好奇心旺盛なあなたは、お金よりも自分に興味をもつことが優先され、自分がどれだけの成長と達成感を得ることができるかを重視する傾向が。そんな訳で、お金のこととなると割合に無頓着で興味のあることだけに使いすぎるようです。また、意欲的に仕事に取組む、完璧を目指す姿勢はあなたの美徳ですが、ときには、情緒豊かな人物との交流が大事です。相手の会話術を取り入れると人間関係が円滑になって、人脈も広がり自分の成長と金運上昇にもつながっていくでしょう。\n\n【健康】\n不慮の事故による肩の脱臼などに注意が必要。無理を重ねると、肩こりに悩まされ、疲労や精神的なストレスが元になって動脈硬化・高血圧や血行障害からくる心臓病を患いやすくなる他、肝臓・すい臓・胃腸などにポリープや腫瘍が出来てしまう危険もあります。定期的な健診を忘れずに。\n\n【恋愛】\nしなやかで若々しいあなたは、異性からの憧れの的になりやすくモテるタイプです。ときとして、外堀を埋めてから行動に移す冷静な面があります。しかし、ひとたび恋愛に発展すると支配的傾向が。愛する人の些細な欠点に目くじらを立てたり、行動に注文をつけたりしないこと。また、恋愛に対して、気恥しさが働いてしまいがちなので、素直な気持ちで接しましょう。年下の異性のほうが気軽に付き合えて意外と上手くいく暗示が。\n\n【開運】\n想像力を思う存分に働かせること。自分の理想を追い求め、自分のなりたい人物像を心の中に保ち続ければ、イメージ通りの人生に。物づくりなどクリエイティブな活動も運気の底上げになります。そうしたことが感性を刺激して、新たなチャンスへとつながるでしょう。また、恵まれた才能を活かし、人を束ねていく統率力を発揮することも大切です。","short":"☆頼れるリーダーで世界を自由自在に飛び回る人。\n\n物事の本質を見抜き正義感と強い意志で信念を貫きとおします。遠い処に飛んで行く、羽ばたく強さとやり抜く自信を持っています海外に縁があり、もともと才能に恵まれ音楽や映画、華やかなものが大好きなエンターテイメント性も備わっています。"},"軫宿":{"full":"【性格】\n☆テキパキ動くサポート役。人の気持ちがわかる交際上手な人。\n\n精神性が強く、純真な心の持ち主です。頭の回転も早く、臨機応変に対応します。会話術もあり、社交的に振る舞う行動力もあります。細かい事に良く気づき、何事も器用にテキパキとこなし、縁の下の力持ち的存在になる事も。また、物事を徹底的に分析したり解析する真理を探究する力が備わっています。\n\n【適職】\n緻密な思考と冷静な判断力で人生の設計図を正確に描く能力があります。奉仕の精神と実務能力を活かせる仕事に向いています。情報処理能力に優れる「社交運」と物を遠くに運ぶ「海外運」の持ち主です。プランニング業・教育関係・出版関係・コンサルタント・秘書・執筆業、通信・情報関係・交通機関・旅行関係に適性があります。女性の気持ちを掴む、美容業界・ファッション業界も吉。\n\n【お金】\nきちんとしたあなたは、家計簿を使うなど優れた分析力で手堅い面が見られます。決して、過剰なしまりやではなく、人への感謝を形にしてさりげないプレゼントや気遣いも良識的。ただし、執着心があるのでギャンブルは関わらないほうが。さらに、どんなに親密な仲であっても金銭の貸借は回避が無難です。何事においても正確ですが、燃えるような野望で引っ張ってくれる人物との交流で、眠っていた新たな技量が見いだされ金運が上昇するでしょう。\n\n【健康】\n指先のケガや手荒れには注意が必要です。知らない間にたまった疲れやストレスから免疫力が落ち、風邪やウイルス性の感染症・神経性胃炎・腸内のポリープ・不眠症など用心しましょう。女性は生理不順や婦人病全般など、体のあちこちに症状としてあらわれてしまう傾向が。\n\n【恋愛】\n心の底から溢れ出る愛情を恋の場面で表現したいと願うあなたは、恋をせずには生きてはいけないタイプです。社交的で、清楚な雰囲気を備えたフェミニンなあなたは、好きな相手には甲斐甲斐しくサポートしますが、湧き出る愛情を一人の相手にだけ注ぐのは苦手。また、嫉妬がもとで自分からややこしい三角関係を作ってしまうことも。双方の理解が深まるまでは、はやる気持ちを抑えることが大事です。ターゲットをひとつに絞って細やかな気遣いを心がけ、相手の要求や欲望を満たしてあげることに専念しましょう。\n\n【開運】\n物事を深読みし過ぎないこと。それには、最先端の情報をキャッチし続けることです。繊細で鋭い感受性を持ち合わせているあなたですが、もうひとつ、野望に燃える気持ちを持つことが開運の秘訣です。そして、向上心を失わずに、好奇心を持ち続けていることで、秘められた新たな才能が開花していくはず。それが引き金となって運気がアップしていくでしょう。","short":"☆テキパキ動くサポート役。人の気持ちがわかる交際上手な人。\n\n精神性が強く、純真な心の持ち主です。頭の回転も早く、臨機応変に対応します。会話術もあり、社交的に振る舞う行動力もあります。細かい事に良く気づき、何事も器用にテキパキとこなし、縁の下の力持ち的存在になる事も。また、物事を徹底的に分析したり解析する真理を探究する力が備わっています。"},"角宿":{"full":"【性格】\n☆手先の器用さはピカイチ。遊び心満載の社交的な人。\n\n外見はオシャレ上手で華やかさを持っている人です。楽しい事が大好きで趣味も豊富、手先も器用な持ち主。目上の人から可愛がられ、年下には慕われる人気運があります。持って生まれた器用な面を活かしながら、エネルギッシュに行動しましょう。そして、何かの技を磨くことで運が開けていくタイプです。\n\n【適職】\n奉仕の精神があり、与えられた仕事を勤勉にこなす実務能力に長けています。また、社交的な美的センスとバランス感覚があるので、交渉を必要とする分野の仕事に向いています。「ビジネス運」を持つあなたは、美的感覚が優れているので、ファッション業界・美容業界・芸術分野に適性があります。そつのない社交性を活かし、外交分野・司法関係・娯楽関係も吉。\n\n【お金】\n遊び好きなあなたですが、持ち前の財運のおかげで、散財に明け暮れることはめったにありません。しかし、お金が入るなり使ってしまうだけでは運気もダウンしがち。また、社交的ですが、見た目で人や物事を判断してしまう傾向があるので、フラットな考えをもつ人物との交流がふさわしいです。そうすると、相手の考えが尊重でき試練も乗り越えながら、さらなる金運アップが望めるでしょう。\n\n【健康】\n頭や顔にまつわるケガに注意。風邪や肝臓機能の低下など、免疫力不足が引き起こす病気には用心。気疲れからくる神経性胃腸炎・自律神経失調症・ストレス発散の過食が肥満体質になって生活習慣病を招くことにも。また、腰痛に悩まされる事もあります。\n\n【恋愛】\n洗練された立ち居振る舞いを身につけているあなたは、自分の魅力を理解しているので、気のある異性の心をさりげない素振りで引き付けることができます。そして駆け引きも上手です。しかし、ムードや誘惑に弱く「楽しくなければ恋愛じゃない」と、次から次へと相手を変えて、表面的な関係しか築けないことも。見返りを求めず相手のために尽くすことを心がけて。そうすれば何倍にもなって愛の恩恵が返ってくるでしょう。また、あなたが間違った方向に進んだとき、きちんと叱ってくれる相手を選びましょう。\n\n【開運】\n美容と健康に目を向けること。そして、持ち前のあたたかく包み込む大らかさをアピールしましょう。自分の存在価値を意識して、美と健康を探求する心を持つと、人生の価値観が見いだせるはず。そして、周囲を明るく照らすムードメーカーに徹すると、いつしかあなたをバックアップしてくれる人があらわれます。その結果、運が大きく開花していくことでしょう。","short":"☆手先の器用さはピカイチ。遊び心満載の社交的な人。\n\n外見はオシャレ上手で華やかさを持っている人です。楽しい事が大好きで趣味も豊富、手先も器用な持ち主。目上の人から可愛がられ、年下には慕われる人気運があります。持って生まれた器用な面を活かしながら、エネルギッシュに行動しましょう。そして、何かの技を磨くことで運が開けていくタイプです。"},"亢宿":{"full":"【性格】\n☆反骨精神を持って信念を貫き、正義のために戦い続ける人。\n\n正義感が強く、主義を押し通す強情さと共に、軽やかな立ち振る舞いで都会的センスが光る社交的な人です。統括力とリーダー的資質があり、得意とする調整能力を発揮しながら、人間関係の幅を広げていきます。\n\n【適職】\nバランス感覚に長け社交的なので、人と人の架け橋になる役割があります。交渉を必要とする仕事、自分のセンスを活かしながら美と調和を作り出す分野が向いています。モチベーションも高く、強い「統領運」をもつあなたは、警察関係・裁判官・芸術分野・ジャーナリストに適性があります。その他に、金融関係・経理関係も吉。\n\n【お金】\n金銭面に関しても、抜群の調整力を発揮します。支出入もきちんとおこない金銭の貸し借りにも縁がありません。そしてギャンブルに対してもリスクの高さが気になって、たとえ手を出しても本気にはなりにくいでしょう。ただ、財運は割りとあるのに、活用方法がパターン化しているためお金の運用に長けた人物と交流するのが得策。そうすると、バリエーションが増えて効率的にお金を殖やすことができるでしょう。\n\n【健康】\n免疫力が弱く細菌やウイルスへの耐性があまりないことから、風邪・肝機能・心臓・肺疾患・喘息など呼吸器系に注意しましょう。また、しつこい腰痛や痔、大腸の病気が発症することも。お酒の飲みすぎは体のためになりませんので要注意です。\n\n【恋愛】\nあなたは、優雅でスマートな恋愛を好む傾向があります。情熱的な恋愛をしたい願望はあるのに、世間体を気にしてしまうことが多いようです。社交的で洗練されたセンスがあり、絶妙なバランス感覚のあなたは、人と人を引き合わせることが得意なので、恋のキューピッド役になることも多いはず。ドロドロした関係や情欲的な恋愛は無縁です。パッションを全面に出して、本命の相手には、本心を打ち明ける勇気をもちましょう。\n\n【開運】\n人と人をつなぐ役に徹すること。そうすることで、あなたの周りには多くの人が集まり、社会的地位も上昇するはず。また、統括的な資質のパワーをポジティブに活用することが秘訣。そのことで、友好的で平和主義の考えが活きてきて、運気上昇の人生に。そして、魅せることを意識してセンスの良さを磨くと、幸運の扉が開かれていくでしょう。","short":"☆反骨精神を持って信念を貫き、正義のために戦い続ける人。\n\n正義感が強く、主義を押し通す強情さと共に、軽やかな立ち振る舞いで都会的センスが光る社交的な人です。統括力とリーダー的資質があり、得意とする調整能力を発揮しながら、人間関係の幅を広げていきます。"},"氐宿":{"full":"【性格】\n☆分析力が高く、人を喜ばせるのが上手。活発でパイオニア精神が旺盛な人。\n\n表面は穏やかでソフトに見えますが、粘り強さと勝負強さで一旦決めた事はどんな逆境にあっても邁進していく人です。先見の明もあり、野望が強く、決断後の行動はズバ抜けて早いので、必ずや目標を達成するでしょう。\n\n【適職】\n流行と人々のニーズを敏感にキャッチして、美と調和を作り出す感覚に優れています。また、本物志向の審美眼を持ち、各分野のエキスパートになる力が備わっています。「人気運」を持つあなたは、人付き合いのセンスに長け、人脈作りも抜群な能力を発揮するので、ファッション業界・芸術分野・マスコミ業界に適性があります。その他に、外交官・裁判官も吉。\n\n【お金】\nバランス感覚の優れたあなたですが、お金のこととなると、気性の激しさが極端にあらわれます。特にギャンブルとなると、目の色が変わる傾向が。勝負運に恵まれ、引き時もわかっているので、慢心に注意しながら一歩引けるようになれば運気はさらにアップ。他人の意見や批判に耳を貸さないときがあるので、高い地位に就いている人物との交流が幸運のカギ。相手を尊重し、寛容さを身につければ、持っている運が磨かれ金運上昇に繋がります。\n\n【健康】\n身体の強さを過信するあまり、無理してしまうので油断は禁物です。お腹の病気全般として、下痢・便秘・胃潰瘍など、また、血液循環系の心臓病・脳溢血には充分に気をつけましょう。暴飲暴食が肥満症・糖尿病といった引き金にも。女性の場合は、婦人科系の病気になりやすい傾向が。\n\n【恋愛】\n恋愛に対してとても情熱的なあなたは、ひとたび誰かを愛したらどこまでも一生かけて愛を貫こうとする傾向があります。愛の欲望が強く情熱的なので、一体感を求めるあまり、相手を精神的にも肉体的にも束縛する傾向も。安定よりも刺激を求めるタイプなので、リスキーな恋愛に発展しやすいでしょう。心から尊敬できる相手を選ぶこと。また、一方的に思いを募らせたり、相手を追い込んでしまっては、悲恋を味わうことになるので要注意。\n\n【開運】\n持ち前の交渉術に磨きをかけること。他人の意見に耳を傾け、備わっている能力を高めて審美眼を使いこなしましょう。包括的な視点で相手を尊重すれば、ビジネスセンスに磨きがかかり嬉しいことが目白押しに。そのひとつに、多くの人望を集める確率が高くなり、目上からは引き立てられ、目下からは頼りがいのある存在に。謙虚な心が幸運のカギとなるでしょう。","short":"☆分析力が高く、人を喜ばせるのが上手。活発でパイオニア精神が旺盛な人。\n\n表面は穏やかでソフトに見えますが、粘り強さと勝負強さで一旦決めた事はどんな逆境にあっても邁進していく人です。先見の明もあり、野望が強く、決断後の行動はズバ抜けて早いので、必ずや目標を達成するでしょう。"},"房宿":{"full":"【性格】\n☆自然と地位と名誉が舞い込んでくる財産と人徳を備えた人。\n\n情感豊かな探求心と洞察力があり、どことなく高貴な気品が漂う人です。一つの事に熱中する、研究心旺盛の活力に満ちていますが、用心深いので冒険することは好みません。物事を見抜く直感力と判断力の的確さに長けているので、目的を決めたら、最後までやり抜く行動力があります。\n\n【適職】\n緻密な観察力を持ち、抜群の集中力で物事に取り組む能力が備わっています。蠍宮は復活と再生を意味することから、古いものから新しいものへと刷新する役割があり、また、旺盛な探求心で本物を見抜く力を活かせる分野が向いています。「財運」に恵まれ、お金に縁があるあなたは、銀行・証券関係・金融関係に適性があります。その他に、医療関係、検察、警察も吉。\n\n【お金】\n強い金運の持ち主であるあなたは、小さい頃からあまりお金に苦労せず恵まれた環境で育っている人が多いでしょう。もし、突如、立ちはだかる苦難があった時には、人生の壁に対して受けるショックが人より並みはずれて大きくなってしまうかも。しかし、あなたには、それを乗り越えるだけの忍耐力が備わっていることを忘れないで。苦労人で情報収集に長けた人物と交流すると、前に進む術が身について、さらなる金運力がアップするでしょう。\n\n【健康】\n腱鞘炎など「ひじ」に関わる病気に気をつけて。健康面はあまり強くないので健康診断は定期的に。女性の場合は婦人科系の病気などに注意。些細なことでもストレスが溜まりやすいので、肝機能・腎臓病・胃腸病・高血圧・糖尿病など成人病に注意が必要。お酒の飲み過ぎは運気をさげるのでほどほどに。\n\n【恋愛】\nミステリアスで妖艶な魅力のあなたは、フェロモン度も高いので何もしなくても異性の関心を集めるでしょう。豊かな情緒性と洞察力があるので、人の心を読み取ろうとします。要注意は一線を越えた途端に執着心が増し、嫉妬深くなる傾向が。熱烈な愛情表現を抑え、感情をコントロールすること。執念深くなったり、疑惑を抱いたりでは、余計な不信感が増すばかりなので注意しましょう。\n\n【開運】\n考えすぎで動きが止まらないように。インスピレーションに従って情報収集しながら、必要なものを選択しましょう。そうすれば、不要と必要を振り分けるスベが身につき、スピードアップに。知識のブラッシュアップや高度なスキル、ライセンスの取得など自分の才能発掘のための投資を実行してみては。また、趣味も価値観も異なる人たちとの交流が、あなたの輝かしい未来をきり拓くきっかけとなるでしょう。","short":"☆自然と地位と名誉が舞い込んでくる財産と人徳を備えた人。\n\n情感豊かな探求心と洞察力があり、どことなく高貴な気品が漂う人です。一つの事に熱中する、研究心旺盛の活力に満ちていますが、用心深いので冒険することは好みません。物事を見抜く直感力と判断力の的確さに長けているので、目的を決めたら、最後までやり抜く行動力があります。"},"心宿":{"full":"【性格】\n☆明るく快活な一方で寂しがり屋。才能にあふれ、人から好かれる人。\n\n気さくでチャーミング、周りを明るくするムードがあり、神秘的な魅力に包まれている人です。好奇心旺盛で、頭の回転は速く、周りを楽しくする雰囲気を持っているので、自然と周囲に人が集まってくるでしょう。\n\n【適職】\n並外れた集中力で物事に取り組み、エキスパートになる力が備わっています。すたれたものを、新しいものへと再生するような役割があります。持ち前のプロ意識を活かしながら、洞察力が必要な分野の仕事に適しています。「人気運」を持つあなたは、愛嬌豊かで、人の心を掴むのがとても得意なので対面業種の、接客・販売・営業・カウンセラーに適性があります。真髄を見抜く力を活かして、研究や開発部門・企画関連・美術・音楽・演劇・神経科分野の医師も吉。\n\n【お金】\n自分の関わる物事に敏感なあなたは、お金の工面や遣り繰りなど、その場に合わせた創意工夫が得意です。しかし、もっと粘ればもっと増やせるのではないかと、欲深さが出てしまう面があるので注意が必要。とはいっても、金銭面の様々なトラブルやピンチでも、蘇りがはかれる程の逆境運に恵まれています。ただ、一攫千金に走ってしまいがちなので、お金を稼ぐことより、殖やす方法に長けた人物との交流で、手堅く貯蓄ができるでしょう。\n\n【健康】\n腱鞘炎など「ひじ」に関係する病気に注意。また、膀胱炎など泌尿器の疾患として現れることも。女性の場合は、婦人科系ホルモンバランスの乱れや、子宮器官系の病気に気をつけて。免疫力は強いものの、心のストレスからくる病気に弱いので精神的なバランスを心がけて。\n\n【恋愛】\n神秘的なイメージを醸しだしているあなたは、相手の好みに合わせて自分の魅力を変幻自在に操ることが得意です。愛する人と深い絆を結びたいという欲望が強いので、遊びの恋愛には興味がないでしょう。ただ、その一途な愛情も、ときに激しい思い込みにすり替わってしまう危険性があります。愚痴や不満、猜疑心を取り払って、限りない愛を注ぐこと。それによって、女らしさに磨きがかかり幸せを手にすることができるでしょう。\n\n【開運】\n未知なることにも大胆に踏み込むこと。外ではとても明るく振舞い、内では何故か陰鬱な気分になってふさぎ込むことも。ピンチやアクシデントに遭遇しても、決して諦めることなく起死回生を図ることができる運を持っているので、物事をポジティブに捉えて、大きな転機と飛躍の波に乗りましょう。そして、興味の湧いたことにトライし、深めていけば間違いなく、運気アップのよび水をさそうことに。","short":"☆明るく快活な一方で寂しがり屋。才能にあふれ、人から好かれる人。\n\n気さくでチャーミング、周りを明るくするムードがあり、神秘的な魅力に包まれている人です。好奇心旺盛で、頭の回転は速く、周りを楽しくする雰囲気を持っているので、自然と周囲に人が集まってくるでしょう。"},"尾宿":{"full":"【性格】\n☆頭がよく、駆け引きも得意。着実に階段を上る粘り強い人。\n\n精神性がとても高くどこか堂々として、今の時代には珍しいぐらい昔堅気の職人や名人に多くみられる古風なタイプの人です。自分を信じ、どんなに厳しい状況であっても、驚くべき集中力と粘り強さで難なく乗り越え、やり遂げます。\n\n【適職】\n綿密な計画を練り、旺盛な知識欲と行動力が必要とされる分野に向いています。実直で正直な姿勢は、あなたの持つ「名声運」にもつながり、学術や語学系の職種である、司法・法律関係・IT関連・出版業界・マスコミ業界・通訳・貿易関係に適性があります。また、海外に関連した職業も吉。\n\n【お金】\n実直で楽観的なあなたは、集中力や競争心といった精神的能力もバランスよく持ち合わせているので、財運をつかむ運にも恵まれています。 しかしお金へのこだわりそのものが薄いようです。 それゆえ、自らの足場を固める準備として一部は貯蓄するなどの心がけが大切。何事にも研究熱心なあなたですが、既成の概念にとらわれがちなので先駆者的なバイオニア精神旺盛な人物と交流を。そうすることで、持っている財力もさらにパワフルになるでしょう。\n\n【健康】\n精神力もありエネルギーに満ちあふれているので病気を寄せつけにくい丈夫な身体の持ち主。しかし、無理をしやすく、気がつくと重症になっているというケースも。脳溢血・脳血栓など脳に関わる疾患や、生活習慣病・高血圧からくる糖尿病・肺機能・肝機能障害などに注意が必要です。\n\n【恋愛】\nエネルギッシュで行動的なあなたは、リスクの高い恋ほど燃え上がる傾向が強く、わき目もふらず、好きな相手に向かってまっしぐらに突き進んでいくタイプです。しかし、何かを強制されたり束縛されたりすると、一気に熱が冷めてしまうことも。情熱の赴くまま奔放な恋に身を投じたり、見切り発車な行動にでることも。 あまりの暴走では恋の成就は望めないでしょう。 それゆえ、押したり引いたりといった、恋の駆け引きを身につけることが大事かも。\n\n【開運】\n独立精神を持つこと。何かを追いかけ、探求することが得意なので、既成の概念にとらわれず、留学、独立など人生の岐路となる決定を下すのも吉。何事も自信を持って挑みながら、自分自身の一番好きなことに熱中することができれば、周囲の信頼と評価を上げることができます。 異国の文化と触れ合うことで成功の糸口もつかめるはず。自分の直感を信じて邁進すれば、思った以上のチャンスに恵まれ、さらなる幸運を引き寄せることでしょう。","short":"☆頭がよく、駆け引きも得意。着実に階段を上る粘り強い人。\n\n精神性がとても高くどこか堂々として、今の時代には珍しいぐらい昔堅気の職人や名人に多くみられる古風なタイプの人です。自分を信じ、どんなに厳しい状況であっても、驚くべき集中力と粘り強さで難なく乗り越え、やり遂げます。"},"箕宿":{"full":"【性格】\n☆芯を貫き、情熱的に行動する。我が道を行き、人を惹きつける人。\n\n何事も徹底主義でドラスティックな感性を持ち、競争心、闘争心が旺盛。のびのびと自由奔放に生きることを美徳としています。また、大局的な考えが得意で、自らを磨き学ぶことや上昇思考が強いので目標を決めれば、一心不乱に突進し夢を実現させていきます。\n\n【適職】\n国境や世代を超えて外へ飛び出して活躍する役割があります。知識を必要とする仕事、人生の意味や喜びを探求するような精神性の深い仕事に適しています。寛大で商才に恵まれているあなたは、良きパートナーに恵まれる「独立運」の持ち主です。ポジティブで勢いのあるリーダー気質と親分肌の特性を活かし、起業して会社を持ったり、独立採算制の仕事につけばスケールの大きな活躍が期待できるでしょう。マスコミ業界・出版関係・旅行関係・プロデュース業・マネージメント業に適性があります。\n\n【お金】\nお金に関しても楽観的なあなたは、　困難にあってもひるむことなく、経済的に困窮した場合のほうが意欲を燃やします。ただ、稼ぎ方も使い方も豪快で、さらに人一倍気風の良さがあるので、大盤振る舞いで人におごったり、ギャンブルにうつつを抜かすのはご法度。スケールが大きく楽天的で目標が決まると、突進しますが細部にまで目がゆき届かない面があるので、緻密な金銭感覚に長けた人物と交流すれば、地位やお金を得ることができます。\n\n【健康】\nコンディションが低下すると、右脇をはじめいろいろな箇所に痛みが生じます。基本的に病気とは無縁ですが、お酒の飲みすぎに気を付けて。何事もやりすぎるタイプなので肝機能障害・胃けいれん、などにも注意が必要です。他には、筋肉痛・リュウマチ・筋肉や関節に関する場所に故障が出やすい傾向があります。\n\n【恋愛】\n自由奔放で華やかな魅力を醸し出すあなたは、恋愛に対してもこだわりが少なく、何事にも囚われないスマートな恋愛を望む傾向があります。欲望に忠実で享楽にふける傾向があるので、複数の相手との恋を楽しんだり、何かとトラブルも多いでしょう。それゆえに、一途な愛情を捧げること。興味半分で異性を翻弄したり、相手が振り向いた途端に興味を失って飽きたりでは、不毛な恋愛ばかり繰り返すことになるので注意して。\n\n【開運】\n自分の直感を信じること。備わった情熱と行動力が発揮されると運も味方になるはず。スケールが大きく楽天的で目標が決まると脇目もふらずに突進するので、大きな理想をかかげましょう。そして、細部にまで目を行き届かせて、緻密な解析力や分析力を身につけること。海外など異国の文化と触れ合うことで、豊かなインスピレーションに導かれて運が上昇していくでしょう。","short":"☆芯を貫き、情熱的に行動する。我が道を行き、人を惹きつける人。\n\n何事も徹底主義でドラスティックな感性を持ち、競争心、闘争心が旺盛。のびのびと自由奔放に生きることを美徳としています。また、大局的な考えが得意で、自らを磨き学ぶことや上昇思考が強いので目標を決めれば、一心不乱に突進し夢を実現させていきます。"},"斗宿":{"full":"【性格】\n☆闘争心にあふれ、負けず嫌い。カリスマ性があり幸運に恵まれる人。\n\n一見穏やかに見えますが実は頑固。強固な忍耐力を持ち辛抱強い人です。プライドが高く、とくに対抗するライバルが出現すると俄然　奮闘力を発揮します。人を引き付けるカリスマ性があり、我慢強くさまざまな苦労をはねのけるパワーを持ち、活動的でエネルギッシュな精神力の持ち主です。\n\n【適職】\n並外れた洞察力と競争心を持ち、物事の本質を見極める知性の持ち主です。社会的な影響を人に与える力と、立ち位置を見極める力が備わっているので組織の中で力を発揮します。タフな精神力と向学心が旺盛な「名誉運」を持つあなたは、教師・公務員・通訳・銀行・証券関係・不動産関係に適性があります。その他に、スポーツ分野・宗教関係も吉。\n\n【お金】\n目的意識が強く現実的なあなたは、用途によって計画的な使いわけや金銭的な余裕を作っておくなどとても堅実。財運に恵まれているあなたですが、一度熱くなると留まるところをしらない闘争心があるので、ギャンブルや投資などには手をださないほうが無難です。また、努力家ですが、意固地な面があるので大胆で豪快な考え方をする人物との交流を。その度胸の良い考えを取り入れると、人脈も広がり金運もダイナミックに上がっていくでしょう。\n\n【健康】\n基本的に丈夫な身体ですが、関節が硬い傾向があり、転んだ弾みの脇の打撲や骨折、特に左脇周辺が注意です。疲れや不摂生によって過食・便秘・下痢などが起こり、ストレスによる胃炎・胃潰瘍・胃腸の病気にも用心が必要です。また、チック症・強迫神経症・神経性の症状が出ることもありそう。\n\n【恋愛】\n恋愛とは単なる「時間とエネルギーの浪費かも」と考えるあなたは恋愛か仕事、どちらかの選択を問われたら迷わず仕事と答えるタイプです。真面目で用心深く危ない恋には目も触れず、常に堅実な恋愛を選択するので、大失恋の経験は少ないでしょう。孤独に強いタイプで、恋愛より仕事を選びがちなので、フリーの期間が長くても結構平気なはず。ときには理性を取り払い、タガを外すことが大切です。恋愛は怖いものではないということを認識することで、充実した恋愛が成就することでしょう。相手に厳しくしすぎると孤立する危険性があるので注意して。\n\n【開運】\n目標や夢を明確にすること。それには、なりたい未来の自分をイメージしてコラージュを仕上げます。目標や夢を書き入れて、それを声にだしましょう。そうすると、音の波動が振動されあなたの願いは天に届いていくはず。また、さらなる向上を目指し専門的な知識を習得しましょう。そして、夢が叶った輝く未来の姿を、ビジュアル化することで、目標が具現化されていくでしょう。","short":"☆闘争心にあふれ、負けず嫌い。カリスマ性があり幸運に恵まれる人。\n\n一見穏やかに見えますが実は頑固。強固な忍耐力を持ち辛抱強い人です。プライドが高く、とくに対抗するライバルが出現すると俄然　奮闘力を発揮します。人を引き付けるカリスマ性があり、我慢強くさまざまな苦労をはねのけるパワーを持ち、活動的でエネルギッシュな精神力の持ち主です。"},"女宿":{"full":"【性格】\n☆趣味が豊富で自分磨きの達人。努力を重ね、地位や名誉を築く人。\n\n実直で真面目、高度な精神性と忍耐力が宿っている人です。論理的思考で何事にも計画性を持って、綿密な調査をしてから、行動に移す慎重さを秘めています。また、若い頃から落ち着きがあり、深い魅力を醸し出しているあなたは、何かに熱中すると念力パワーを発揮して、苦難や困難に耐えながら目標に向かって道を切り開いていきます。\n\n【適職】\n一度目的が決まると、たぐいまれな集中力と粘り強さを発揮します。具体的で実際的な方面に興味が向かうため「勤め人」として高い評価を受けることができます。「名誉運」に恵まれたあなたは、組織の中でやり遂げる粘り強さが必要とされる、税理士・公務員・司法関係・教師・官僚に適性があります。また、女性を対象にした、美容、ファッション業界・書・舞・茶道・華道も吉。\n\n【お金】\n緻密な計算と努力が得意なあなたは、計画的に貯蓄し金銭的な余裕を作るなど遣り繰り上手の堅実家です。余程のことがない限りお金に困ることはないでしょう。そして、ギャンブルや投資などにも、本気にならないので心配なさそうです。ただ、物事の構築能力はありますが、全てに気を張りつめて、お金の管理にもキリキリしすぎる面が。常に、オープンでユニークな感性を持つ人物と交流すると新しい発想が得られさらに金運がアップされるでしょう。\n\n【健康】\n忍耐力と精神力を兼ね備えているため我慢強く、無理を繰り返して病気を慢性化させやすい傾向が。内臓全般・大腸・喘息・風邪を始めとする感染症など、免疫が弱ると起こりやすくなる症状にも注意が必要です。女性は、血行障害からくる婦人特有の病気にも注意を払いましょう。\n\n【恋愛】\n恋愛への欲求を激しく求めながらも、規律や道義などを強く意識する傾向があるので、ダイレクトに相手の胸に飛び込めないことが多いでしょう。たゆまず自己研磨を重ねる実直なあなたは、約束は必ず守り、自分に厳しく相手にも厳しいでしょう。ただ、愛をカタチで保証してほしいと相手に要求する面があり、社会的な肩書に拘るところも。相手に物質的なメリットを求めるのではなく、魂の繋がりを重視するべき。時にはムードや勢いで突っ走ることも必要でしょう。\n\n【開運】\n伝統的な文化を重んじること。心身を厳しく鍛えることを美徳としているあなたは、社会のつながりを大切にし、地域社会における責献活動の役割にも注目。また、現実の中にロマンを織り込むことで、新しい考えや発想を得ることができるはず。そうすることで達人と言われる技が輝いてくるでしょう。","short":"☆趣味が豊富で自分磨きの達人。努力を重ね、地位や名誉を築く人。\n\n実直で真面目、高度な精神性と忍耐力が宿っている人です。論理的思考で何事にも計画性を持って、綿密な調査をしてから、行動に移す慎重さを秘めています。また、若い頃から落ち着きがあり、深い魅力を醸し出しているあなたは、何かに熱中すると念力パワーを発揮して、苦難や困難に耐えながら目標に向かって道を切り開いていきます。"},"虚宿":{"full":"【性格】\n☆複雑で繊細な心の持ち主。感受性や直感力に優れる人。\n\n捉えどころのないちょっと風変わりで、束縛を嫌う性分であり、我が道をいく人です。気位の高さがあって、独自の世界観を持ち、発想力の豊かさに長けています。また、人の心を読み取ろうとするカンが鋭く、意思も強く管理能力に長けているので、大きな偉業を成し遂げる能力を秘めています。\n\n【適職】\n孤独に強く、社会的な影響を人に与える能力があります。人々の創造性を刺激する分野の仕事が向いています。社会的地位に恵まれたあなたは、無駄を嫌う合理的な知性の持ち主です。ストイックな修錬が求められる、デザイナー・ライター・カメラマン・技術者・研究者・科学者・教職に適性があります。その他に、航空関係も吉。\n\n【お金】\n財運に恵まれているあなたは、管理能力も高く無駄遣いしない方法を心得ています。収入を上手に割り振りして、計画的に貯蓄にまわし余裕資金などをつくりだすのが得意。そのことから、経済的に豊かな生活を送ることができるでしょう。ただ、プライドが高い反面、臆病な面があり、ときおり、空想に陥って人との交わりが苦手と思うことが。社交的な人物と積極的に交流すれば、人間関係が拡大しその情報交換によって金運アップの秘訣を得ることに。\n\n【健康】\n膀胱炎・尿毒症・結石など腎臓を始めとする内臓全般や喘息・気管支炎・上気道炎など呼吸器系の病気には注意。胃腸が若干弱いので、暴飲暴食は避けましょう。高血圧・脳溢血など、突発性の疾患にも気を付けて、疲れたと思ったら無理をせず休息を心がけるように。\n\n【恋愛】\n真面目で用心深く、失敗を恐れる気持ちが強いので、相手に弱みを見せるのが苦手な傾向があります。ムードや勢いで突っ走ることは滅多になく、恋愛には不器用でしょう。面倒見も良いため頼りにされますが、ベタベタした依存関係とは無縁。恋のエモーションを感じたら何も考えずに相手に委ねること。素直に甘えて、ロマンスに酔いしれることができれば、フェロモンが増して恋の勝利者に。\n\n【開運】\n存在感を発揮することです。真剣に取り組む姿勢と、実現に向かって自分が努力したことは、裏切ることはなく必ず結果となって残るはず。そして、知識のブラッシュアップやイマジネーションを豊かに働かせることで、実質的にかなりの成果を上げることも。そのことから、確固たる存在感と実力が身につき、大きな偉業を成し遂げることが可能になるでしょう。","short":"☆複雑で繊細な心の持ち主。感受性や直感力に優れる人。\n\n捉えどころのないちょっと風変わりで、束縛を嫌う性分であり、我が道をいく人です。気位の高さがあって、独自の世界観を持ち、発想力の豊かさに長けています。また、人の心を読み取ろうとするカンが鋭く、意思も強く管理能力に長けているので、大きな偉業を成し遂げる能力を秘めています。"},"危宿":{"full":"【性格】\n☆活発で遊びを楽しむ天才。純粋な心で社交の才を発揮する人。\n\n好奇心旺盛で平凡を嫌い、新しいもの好きで風変わりなものを好む人です。独自の考えやスタイルに強いこだわりを持っているので、夢や幻想の世界に流されることを好みます。理性よりも感性の面が強い傾向にあるので、 直感力と美的センスを活かし、器用さと独特のアイデアをうみだすことで才能が活かされていきます。\n\n【適職】\n仲間意識が強く、チームワークを大切にします。人々の創造性を刺激する役割があり、連帯感が必要な仕事、人と手を携えて取り組む仕事に向いています。トレンドを敏感に察知し、革新的なアイデアで創意工夫が得意なあなたは、技術分野・企画開発・学術研究・医薬関係・マスコミ関係・広告関係・出版に適性があります。その他に、航空関係なども吉。\n\n【お金】\nきちんと計画を立てて効率的にお金を管理するのは苦手なあなたです。 それよりもお金を使って得た価値に目を向けるほうが得意です。 お金は使うためにあり 「お金は天下の回りもの」「今のピンチをそんなに嘆げくことはない」という気持ちが強いかもしれません。お金を使って得た価値をもとに、どのように次のチャンスをつかむかを考えると金運上昇するでしょう。しかし、のめり込んだら、とどまる所をしらないのでギャンブルや投資は、盲目的な一面があるのでご法度です。 そんなあなたには、きちんとお金の管理ができる人物から、マネーセンスを習得することで、着実に貯金ができるようになるかもしれません。\n\n【健康】\n骨盤や股関節などのズレに注意。また、血行障害を起こして、頭痛・冷え性・肩こり・腰痛・胃腸障害・消化不良・便秘・下痢を繰り返すときもあるので、大腸のポリープなどの病気には用心。不調になった時は、無理を続けずに早めの受診を心がけることが大事です。\n\n【恋愛】\n知的でクールさが漂うあなたは、独自のスタイルと個性がとても魅惑的。常識に縛られないユニークな発想が斬新すぎて誤解を受けることも多いかも。基本的に自分のことが大好きで、好奇心も旺盛なので、恋愛対象もコロコロと変わりやすいでしょう。波長が合わないからといって、知らぬそぶりをしてしまうようでは、幸せにはなれません。また、アブノーマルな遊びや不倫には要注意。\n\n【開運】\n逆境を乗り越えること。試練をどのようにして乗り越えるかで、人生の色合いも大きく変わります。何か苦難に遭遇したときは「これは試練を乗り越える課題に違いない」と、ピンチをチャンスに変えましょう。防御の姿勢よりアグレッシブに問題に取り組むことが得策。人に理解されないことでも自分が好きなら続けるという、強さをもって進むことで運気が上昇するでしょう。","short":"☆活発で遊びを楽しむ天才。純粋な心で社交の才を発揮する人。\n\n好奇心旺盛で平凡を嫌い、新しいもの好きで風変わりなものを好む人です。独自の考えやスタイルに強いこだわりを持っているので、夢や幻想の世界に流されることを好みます。理性よりも感性の面が強い傾向にあるので、 直感力と美的センスを活かし、器用さと独特のアイデアをうみだすことで才能が活かされていきます。"},"室宿":{"full":"【性格】\n☆陽気で豪快な野心家。目標へと突き進むパワフルな人。\n\nユニークで現実をダイナミックに動かす実力を兼ね備えた人です。自由で創造的な感性に恵まれ、傍若無人としての印象が強く、自信に満ちあふれる言動や行動で、周囲を驚かせ圧倒させる面も。エネルギッシュで独特な個性を持ち、斬新で革新的な考えを美徳としています。\n\n【適職】\nチームワークを大切にして、連帯感を携えて取り組む能力があります。自由で大胆な発想力で才能が発揮できる仕事が向いています。「実力運」を持つあなたは、画期的な着想力と大胆な発想が得意な努力家なので、企画開発・技術開発・販売戦略・マスコミ関係・広告関係・美容関係・美術関係・音楽関係・芸術分野に適性があります。独立起業も吉。\n\n【お金】\n金銭に関しても豪快に使う大胆さと、緻密な計画さの二つを併せ持つあなたです。名声運・出世運にも恵まれているので収入も段階ごとに上昇。それに伴って、返報性も大切にするあなたなので、沢山の縁や運を手にすることも多いはず。ただ、肝も据わっていて貪欲で強引な面があるので、冷静な判断力を持った尊敬できる人物との交流が必要。その人物の考えを学び、取り入れることで知識の幅も広がりあなたの存在運と金運がともにアップするでしょう。\n\n【健康】\nストレスが重なると、血行障害からくる胃腸障害・腎臓病・膀胱炎を患いやすい傾向があります。また、手足の冷えや、けいれん、足のケガに注意が必要。定期的な診断など、先回りして対処するよう気をつけておくと、持ち前のパワーを存分に発揮することができるでしょう。\n\n【恋愛】\n常に高いポリシーを持つあなたは、恋愛も同様と考えます。高い理想を抱き、幻想的な恋やセレブ的な環境での恋に憧れることが多くあります。誰に対しても、分け隔てなく接することができるので人気は抜群。どれほど相手を好きになっても、束縛されることを嫌う傾向が。年齢の離れた恋愛や、自分とは全く異なるバックグラウンドを持つ異性に惹かれたり、禁断の恋に身を投じることも。好きな人と共有する時間をもっと大切にすること。また、恋のトラブルに遭遇しても、いたずらに恐れず、その災いは必ず福に転じると強く信じましょう。\n\n【開運】\n目上のアドバイスを聴き入れ、冷静な判断力を養いましょう。相手の考えを取り入れることで知識の幅も広がり、あなたの持ち前の存在感は確実にアップ。大胆な戦略と緻密な策略、この相反するセオリーを操ることができれば、大きな偉業も成し遂げられます。興味のある人物が現れたら、自分からコンタクトをとる努力をすると、新たな人間関係が始まり、人生がガラリと変わることもあるでしょう。","short":"☆陽気で豪快な野心家。目標へと突き進むパワフルな人。\n\nユニークで現実をダイナミックに動かす実力を兼ね備えた人です。自由で創造的な感性に恵まれ、傍若無人としての印象が強く、自信に満ちあふれる言動や行動で、周囲を驚かせ圧倒させる面も。エネルギッシュで独特な個性を持ち、斬新で革新的な考えを美徳としています。"},"壁宿":{"full":"【性格】\n☆人をサポートするのが生きがい。華やかで困難に負けない強い人。\n\n温厚、世話好きで優しく、周囲から好感をもたれ、内に秘めた直感や情緒豊かな芸術的センスに恵まれた人です。転んでもタダでは起きない粘り強さを持ち、冷静な観察眼と分析力で自分の好きな事は、どこまでもとことん熱中し独自の足場を築いていきます。\n\n【適職】\n独特の精神世界を活かしながら、クリエイティブな世界で活躍する役割があります。また、世話好きで、人助けに関しては抜群の才能を発揮します。心と心の触れ合いの中で人をサポートする、保健衛生・福祉事業関係・ファイナンシャルプランナー・コンサルタント・秘書・公務員・経理に適性があります。\n\n【お金】\n蓄財運に恵まれているあなたは、無駄な出費をすることは滅多になく、倹約しながら手元のお金を上手に殖やして行くことができます。ただ、ギャンブルや投資は人から誘われてしまうと、断れずにお金を使ってしまう弱い面がでるので、手を出さないほうが無難でしょう。また、人の良さに付け込まれ、騙されてしまう危険性がないように参謀的な人物の意見を取り入れることで、駆け引きや交渉術が身について持っている金運が強まっていくでしょう。\n\n【健康】\nストレスから血行障害を起こしやすく、足のケガ・手足の冷え・外反母趾・タコなど足の病気、交通事故による足のケガ、特に左腿に注意。また、靴選びの際には足が楽なものを選ぶなどの配慮が必要。心身共にデリケートな性質なので、慢性疲労から脾臓の病気を患いやすい傾向が。\n\n【恋愛】\nあなたは「人を支えたい、人に尽くしたい」という気持ちが、極めて強いので、献身的で強い愛情に満ちあふれた恋をするでしょう。想像力が豊かで、どこか夢見がちなタイプ。愛する人には誠心誠意に尽くすでしょう。ただし、一度嫌になるとアッサリ別れてしまうような気まぐれなところも。ひとりよがりではなく、客観的な視線を持つこと。四六時中、相手のことばかり考えたり、余計なお世話が過ぎると、悲恋を味わうことになりそう。ときに相手の要求を断る強さも大切。\n\n【開運】\n自分自身の内面の声に耳を傾けること。内側から湧き出る発想に従うことで、不可能を可能にすることができます。芸術的な感性で誰も思いつかないようなモノを創り出すことも。一度悩み始めると物事を突き詰めて考えてしまうので、音楽を聴きながら絵を描いたりすることで、内なる心の世界を広げることが出来るでしょう。また、今までの経験で身につけた技能は大きく開花する暗示があります。迷いが生じたときは自分のインスピレーションにしたがうことを忘れずに。","short":"☆人をサポートするのが生きがい。華やかで困難に負けない強い人。\n\n温厚、世話好きで優しく、周囲から好感をもたれ、内に秘めた直感や情緒豊かな芸術的センスに恵まれた人です。転んでもタダでは起きない粘り強さを持ち、冷静な観察眼と分析力で自分の好きな事は、どこまでもとことん熱中し独自の足場を築いていきます。"},"奎宿":{"full":"【性格】\n☆温厚で誠実ながら、大胆な一面も。異性からサポートを受ける人。\n\n気位が高く上品で、清潔感に包まれ、とても礼儀正しく精神性の高い人です。未知の世界であっても、びっくりするぐらい大胆にのめりこんだり、感情に流されて依存しやすい傾向も。しかし、カンや閃き、そして豊かな直感力と想像力に恵まれています。見せかけだけの軽薄な人や対立を嫌う傾向があります。\n\n【適職】\n創造性を活かしながら芸術分野で、のびのびと才能を発揮できるでしょう。組織に縛られない仕事に向いています。上品で美しいものに魅かれるので、芸術に触れることや、知的で向学心に溢れる、医学・薬学関係・教職・研究職・化粧品に適性があります。水産業・海運業・福祉関係・保健衛生関係・自営業も吉。\n\n【お金】\nお金に対して楽観的なあなたは、積極的な貯蓄は苦手なタイプかも。しかし、何事にも模範的でありたいと願っているので、無駄になるような買い物は滅多にしません。けれども、何かに熱狂的にのめりこみ、一度熱くなってしまうと、融通の利かない執念深さが出てくるときが。それゆえ、ギャンブルや投資は避けるほうが無難です。サイドビジネスに長けている人物と交流すれば、収入を増やす手段が見つかり貯金をすることができるでしょう。\n\n【健康】\n手足の冷え、膝に関わる病気やケガに注意。また、靴が原因で外反母趾や足を痛めやすい傾向も。突発的な高血圧・喉・気管支などの病気にも気をつけましょう。膝の病気、高血圧や気管支に注意が必要。日頃からの不摂生や、不規則な生活がカラダに悪影響を及ぼすことも。難しい健康法に頼るよりも規則正しい生活から始めましょう。\n\n【恋愛】\nあなたは思いやりにあふれ、深い愛情を注ぐことができるので異性にモテます。しかし、好きな相手には、激しい感情移入や強度に依存し過ぎる傾向があります。内側に強い情熱が潜んでいるため、パッションを駆り立てるような恋愛を望んでいる一面が。秘密の関係を持ちやすく、二重の恋に陥る可能性も高いでしょう。すべての物事を規則や形式で決めようとしないで、ユーモアのセンスを身につけること。そうすればロマンティックな恋のチャンスが増え、持ち前のめぐまれた恋愛運が発揮できます。\n\n【開運】\nカンに頼りすぎて物事の理論を疎かにせず、論理的に結論を出すリアリストな考えを持つこと。また、文才力があるので、文章や文学との関わりを積極的に増やせれば運気アップに繋がります。そして、浮かんだアイデアを実用的に落とし込こんでいくと、予想以上の結果に繋がります。それには、自分の才能発掘を惜しまず実行しましょう。そうすれば天からの導きが得られ大きな幸運が訪れるでしょう。","short":"☆温厚で誠実ながら、大胆な一面も。異性からサポートを受ける人。\n\n気位が高く上品で、清潔感に包まれ、とても礼儀正しく精神性の高い人です。未知の世界であっても、びっくりするぐらい大胆にのめりこんだり、感情に流されて依存しやすい傾向も。しかし、カンや閃き、そして豊かな直感力と想像力に恵まれています。見せかけだけの軽薄な人や対立を嫌う傾向があります。"},"婁宿":{"full":"【性格】\n☆補佐的な立場で実力を発揮。特殊な能力で一芸に秀でる人。\n\n曲がったことが大嫌いで、燃え上がるような正義感と勇敢さと共に、親しみやすさ溢れる面を持ち合わせた人です。直感から湧き出るアイデアの豊富さとセンスもあり、多彩な才能に恵まれています。また、バイタリティーのある抜群の精神と行動力で、一度決めたら無我夢中で、必ずやり遂げる情熱と向上心で生き抜いていくでしょう。\n\n【適職】\nスピーディーな決断と行動力があるので競争力の激しい職種に向いています。「人気運」を持つあなたは、気遣い、気配りの機転が利き、接客業務の職種にあたると能力が発揮されます。営業関係・販売業界・広告業界に適性があります。その他に、レポーターなどのマスコミ関係も吉。\n\n【お金】\nまっすぐで一本気なあなたは、迷いのない素早い決断力で損得勘定を敏感に察知する、ズバ抜けた能力と計算強さがあります。しかし、一度火がついてしまうと無我夢中で突っ走り冷静に考えられなくなってしまう面も。競争心と負けん気の強さで、引き時を見失ってしまいがちなので、ギャンブルや投資はご法度です。鋭敏な感知力があるので、知的で社交的な人物との交流をもつことでビジネスセンスが磨かれて地位やお金も得ることに。\n\n【健康】\n動きが俊敏で行動範囲も広いので、バイタリティーが裏目に出ないよう、交通事故や打撲などに気をつけましょう。疲労やストレスが溜まっても頑張ってしまう性格なので、頭痛・高血圧・脳出血・脳梗塞などが出やすく、意外に虚弱体質なタイプが多いので日頃の健康管理は大切です。\n\n【恋愛】\nあなたは、メラメラ燃えたぎる炎のように情熱的です。恋愛も同様に、激しく一途な愛情を注ぎ、相手を追い求めていくことが多いでしょう。穏やかな恋愛には無縁です。退屈な日常を打ち破ってくれるような刺激的な恋を求めているため、言い寄られる恋には無関心。ときには略奪愛もいとわない滑稽な手段にでることも。年齢の離れた関係のほうが、意外にうまくいくでしょう。\n後先を考えずに行動したり、思いやりに欠ける発言ばかりでは恋は一方通行。一歩引いて受け身でいるくらいがベストと心得ましょう。\n\n【開運】\n直情的な行動を改め、ときにはじっくり考えてから結論を導き出しましょう。そのために、衝動的な行動をすこし抑えることも大事。知的で社交的なセミナーやパーティーなどの交流に出向いたり、参画すればしだいに成熟したまろやかな魅力と、広い視野から観察する力が備わってきます。そして、思ってもみなかった幸運をキャッチし、上昇気流の運気に乗れるでしょう。","short":"☆補佐的な立場で実力を発揮。特殊な能力で一芸に秀でる人。\n\n曲がったことが大嫌いで、燃え上がるような正義感と勇敢さと共に、親しみやすさ溢れる面を持ち合わせた人です。直感から湧き出るアイデアの豊富さとセンスもあり、多彩な才能に恵まれています。また、バイタリティーのある抜群の精神と行動力で、一度決めたら無我夢中で、必ずやり遂げる情熱と向上心で生き抜いていくでしょう。"},"胃宿":{"full":"【性格】\n☆好奇心旺盛で俊敏に動く。チャレンジし続けて成長する人。\n\nオリジナリティー豊かなパワーと、闘争心旺盛な行動力に優れ、とても自信満々で度胸のある人です。スピーディーで頭の回転が速く、運を掴むチャンスとタイミングの速さは抜群です。また、好奇心旺盛で強いリーダーシップ力を発揮することで、多くの人が集まり、ユーモアセンスも豊かで自分の人生を切り開いていく力があります。\n\n【適職】\n競い合いながら新たな価値や需要を生み出すパワーが備わっています。人の先頭に立ち開拓精神で新しいフィールドに挑む役割があり、競争の激しい仕事に適しています。抜群の「勝負運」の持ち主なので、競争意識を活かせる営業職に向いています。スポーツ関係・ファッション関係・貿易関係・飲食、食品関係にも適性があります。独立起業は吉と出るでしょう。\n\n【お金】\n闘争心旺盛で迷いを見せないあなたは、視界に入るマネーチャンスを、多少大胆にも見えるやり方で手元に引き寄せることができます。また、勝負運があるのでギャンブルや投資は吉と出ますが、引き時を見失うと大損するので平常心を忘れずに。投資や出費は損と思わず、さらに稼ぎだしたお金をコミュニケーションで使えば信頼関係が深まります。そして、グローバルな視点を持つ人物と交流すると大金を得るチャンスに恵まれるでしょう。\n\n【健康】\n健康には自負があり強靭な肉体を持っていますが、足腰の病気やケガ・手足の冷え、には注意が必要です。薬剤に詳しく健康には留意しますが、胃宿の胃を示しているので飲み過ぎ食べ過ぎにも注意を。ときに短気で頭に血がのぼりやすいので脳出血・脳梗塞などにも用心が必要。\n\n\n【恋愛】\n情熱的で、人目を引く魅力に包まれているあなたは、女性は相手をリードする姉御肌、男性は頼りがいのある存在。女性は特に年下の異性に一目惚れされやすいでしょう。障害のある恋愛もいとわず、情熱的に相手を愛しますが、相手のすべてを奪い取ろうとするところがあり、束縛したり嫉妬深くなったりします。また、人目惚れしやすい傾向も。客観的に自分を見つめることが何よりも大事。勢いだけで突き進むと後でひどい目に遭うので注意しましょう。「自分に必要な恋愛とは何か」と、思いをはせることが必要です。\n\n【開運】\n人が真似できないようなオリジナリティーを追求しましょう。持ち前の独特な美意識を開花させることができれば、大きく開運します。グローバルな視点を持つことも大事ですが、直感ばかりを優先するのではなく、ときには手順を重視し、計画的に物事を進めていれば運気はさらにアップします。また、食へのこだわりが運気の底上げに繋がるので、思う存分美味しい物を食しましょう。","short":"☆好奇心旺盛で俊敏に動く。チャレンジし続けて成長する人。\n\nオリジナリティー豊かなパワーと、闘争心旺盛な行動力に優れ、とても自信満々で度胸のある人です。スピーディーで頭の回転が速く、運を掴むチャンスとタイミングの速さは抜群です。また、好奇心旺盛で強いリーダーシップ力を発揮することで、多くの人が集まり、ユーモアセンスも豊かで自分の人生を切り開いていく力があります。"}},"epoch":693596,"aishoDist":{"安":{"n":"★安の関係 (近距離)です。\n「この人は他の人とは違う」という感覚があるかもしれません。あなたのやることなすこと、すべてを好意的に受け入れてくれる相手です。時に激しく衝突することもありますが、くっついたり離れたリしながら側にい続けそう。\n\n☆☆☆ 相性度は 38％です。 ☆☆☆","m":"★安の関係 (中距離)です。\n中途半端に引き合う分、一番、いざこざが多いと言われている相性。安壊の「破壊」の影響が出てくるまで時間がかかるため、「今ここで!?」という場面で破局することも。主導権を握るあなたが相手を気遣うことが大切。\n\n☆☆☆ 相性度は 28％です。 ☆☆☆","f":"★安の関係 (遠距離)です。\n自分が強く出られる相手です。長い時間をかけて「この人なら何を言っても受け入れてくれる」という状況を作り上げていくでしょう。ただし相手が関係の理不尽さに気づくと一変。決断の重さが違うので、修復も困難。\n\n☆☆☆ 相性度は 31％です。 ☆☆☆"},"壊":{"n":"★壊の関係 (近距離)です。\n出会った瞬間に「この人!」と魂が震えるのを感じるはず。まさにそれはあなたが魔法にかかった瞬間。それ以降、相手のすべてを受け入れ「NO」を言えなくなってしまいます。でも目が覚めるのも早いので傷は浅くて済むはず。\n\n☆☆☆ 相性度は 26％です。 ☆☆☆","m":"★壊の関係 (中距離)です。\n仲良しだと思っていたら、急にケンカをし始め、別れに至るといった「急展開」が多いのがこの相性。実は離婚の多い関係とも言われています。とはいえ離れたら離れたで急に張り合いがなくなってしまった・・・・・･なんてことも。\n\n☆☆☆ 相性度は 20％です。 ☆☆☆\n","f":"★壊の関係 (遠距離)です。\nどんな困難があっても結ばれたいと強く感じる相手です。でも、長い時間をかけてあなたを「壊」すのがこの人物。養分を吸い尽くすように、お金や愛情、時間を奪っていくかも。「離れたくても離れられない事情」があるケースも。\n\n☆☆☆ 相性度は 28％です。 ☆☆☆\n"},"栄":{"n":"★栄の関係 (近距離)です。\n隣同士の宿に当たるため、縁が深いのが特徴。どちらかというとあなたのほうがリードして関係が進んでいきます。ただし長い間一緒にいすぎると空気のような存在になってしまうので、時には外からの刺激を取り入れて。\n\n☆☆☆ 相性度は 93％です。 ☆☆☆","m":"★栄の関係 (中距離)です。\nほどよい距離感でつき合える最高の相性。相手の気持ちを察しながら信頼を確かなものにしていきます。特に問題に直面した時に2人で立ち向かえるのが強み。互いの持ち味を活かして、どんな局面も乗り越えていけるでしょう。\n\n☆☆☆ 相性度は 95％です。 ☆☆☆","f":"★栄の関係 (遠距離)です。\n時間をかけてわかり合う関係です。ただし心はつながっているけれど、束縛しないけれど発展もしない、空気のような存在になりがち。特に結婚など関係を前進させたい場面では、第三者に介入してもらう必要がありそう。\n\n☆☆☆ 相性度は 89％です。 ☆☆☆"},"親":{"n":"★親の関係 (近距離)です。\n隣同士の宿で、あなたが「親」の相手に引っ張ってもらえる関係です。一緒にいるだけで楽しくて時間が経つのを忘れるはず。気づけば終始べったりで「2人の世界」ができあがっている場合も。相手を信じて進んで良し。\n\n☆☆☆ 相性度は 90％です。 ☆☆☆\n","m":"★親の関係 (中距離)です。\n互いの個性を引き出し合える最高の相手です。ビジネスパートナ一、結婚相手としても最適。あなたのいいところを認め、もっとも高く評価してくれます。ただし相手のことを思いやりすぎると本音を言えなくなるので注意。\n\n☆☆☆ 相性度は 98％です。 ☆☆☆\n","f":"★親の関係 (遠距離)です。\n気遣い屋でなかなか互いに踏み込まないため、仲良くなるのに時間はかかるものの、長続きすればしっかりとした信頼関係を育めます。あなたのほうから心を開けば相手は受け止めてくれるはずなので、少しずつ歩み寄って。\n\n☆☆☆ 相性度は 89％です。 ☆☆☆\n"},"友":{"n":"★友の関係 (近距離)です。\n宿の位置が近いため、 一気に意気投合して仲良くなりそう。 ただし意見の相違が表れるのも早いので、 すぐに別れが。 特に恋愛の場合、その場の勢いでくっついてもいずれ後悔する可能性が高いので勢い任せの行動はやめて。\n\n☆☆☆ 相性度は 84％です。 ☆☆☆","m":"★友の関係 (中距離)です。\n出会って自然な流れで仲良くなる2人。 互いに好感を抱くものの､相手に理想を押しつけがち。 気持ちを優先するあまり、 不倫など現実のルールに縛られない関係になることも。 結婚後に問題が噴出しやすい組み合わせです。\n\n☆☆☆ 相性度は 81％です。 ☆☆☆","f":"★友の関係 (遠距離)です。\n育ってきた環境や置かれている状況など 「住む世界」 が違いすぎる2人。その違いを楽しむ心の余裕があればいい関係に。 そもそも接点が生まれづらく、 頻繁に会うより、 1年に1回会うくらいのペースが心地いいかも。\n\n☆☆☆ 相性度は 70％です。 ☆☆☆"},"衰":{"n":"★衰の関係 (近距離)です。\nあなたのほうが相手を常に気にかけ、何かにつけ世話を焼きたくなる関係です。 それ自体、 あなたの喜びでもあるのですが､しだいにパワーが奪われ 「衰退」させられることに......。 優しさが仇とならないように気をつけて。\n\n☆☆☆ 相性度は 74％です。 ☆☆☆","m":"★衰の関係 (中距離)です。\nこの相手に対してはなぜか甘くなって尽くしてしまうあなた。 恋愛ならば 「自分が相手を支える」と覚悟できるかどうかがカギ。 仕事面ではトラブルに巻き込まれやすい相手をこまかくフォローしてあげる必要があります。\n\n☆☆☆ 相性度は 75％です。 ☆☆☆","f":"★衰の関係 (遠距離)です。\nお互いの違いを理解するために時間がかかる2人。 でも打算なく、気持ちだけでつながる大人のカップルにはいい関係と言えるでしょう。 再婚や熟年結婚も多い組み合わせです。 ただし金銭問題、 健康トラブルには気をつけて。\n\n☆☆☆ 相性度は 63％です。 ☆☆☆"},"危":{"n":"★危の関係 (近距離)です。\n相手があまりにも自分とは異なる思考回路をしているため、身の危険すら感じるかも。 でも、 なぜか知り合う機会は多め。 同じジャンルでは張り合いがちなので、 それぞれに ｢自分の世界」 を持つことがいい関係のポイント。\n\n☆☆☆ 相性度は 50％です。 ☆☆☆","m":"★危の関係 (中距離)です。\nあえて足並みをそろえず、互いに干渉せず、 それぞれのフィールドで頑張る時に、 良さが光る関係。客観的な意見をもらうと参考になり、 仕事のコンビとしては最適。ただしすれ違いの日々になりやすいので意識してコンタクトを。\n\n☆☆☆ 相性度は 51％です。 ☆☆☆","f":"★危の関係 (遠距離)です。\nなかなか知り合う機会のない遠い関係。 でもどちらかが一瞬にして強く惹かれ、 アプローチすれば関係がスタートすることも。 ただ「自分と相手は違う人間」ということを忘れるとトラブルになりやすいので気をつけて｡\n\n☆☆☆ 相性度は 49％です。 ☆☆☆"},"成":{"n":"★成の関係 (近距離)です。\n仕事で知り合うチャンスが多いものの、ただの顔見知りで終わる可能性が高い2人。 ただし互いのを 「おもしろい」 と感じる機会があるといい関係に。 カップルの場合、それぞれに独自の趣味を持つのが円満のカギ。\n\n☆☆☆ 相性度は 53％です。 ☆☆☆","m":"★成の関係 (中距離)です。\n一線を引いて冷静につき合う関係です。 感情の変動が激しくないドライさが､かえって癒やしになるかも。 ただし共通する目標や話題がないと、ほとんど会話すら生まれなさそう。 まずは2人の接点を作り出すことから。\n\n☆☆☆ 相性度は 53％です。 ☆☆☆","f":"★成の関係 (遠距離)です。\nあまりに自分と違うため、 相手に尊敬の念すら抱いてしまいそう。人生を通じて長いつき合いになる可能性が高く、同性異性問わず「おもしろい友人」というポジションに。 特に仕事で重要なヒントやチャンスをくれる可能性が。\n\n☆☆☆ 相性度は 49％です。 ☆☆☆"},"命":{"n":"★命の関係です。\n出会った瞬間に「この人とは同じだ」と感じることが多いでしょう。異性の場合は「自分が反対の性だったらこんな風だろうな」と感じそう。互いの人生に何か重要な影響を与える役目を負っている二人と言えるでしょう。\n\n☆☆☆ 相性度は 46％です。 ☆☆☆","m":null,"f":null},"業":{"n":"★業の関係です。\nあなたの前世の宿である 「業」 の相手からは、当時の貸しを返してもらえるかのように何かとサポートしてもらえます。ただしそれに甘えて2人の立場に差ができ始めると、関係はフェイドアウト。\n\n☆☆☆ 相性度は 63％です。 ☆☆☆","m":null,"f":null},"胎":{"n":"★胎の関係です。\nあなたが来世、 生きる予定である宿の「胎」 の相手には、母が子に尽くすように、不思議と何でもしてあげたくなるでしょう。異性なら恋愛感情以上の何かを共有することが､関係を長続きさせる秘訣。\n\n☆☆☆ 相性度は 58％です。 ☆☆☆","m":null,"f":null}},"aishoPair":{"安壊":{"kankei":"「安壊」の関係です。\n理屈抜きに惹かれ合う運命を感じやすい関係です。","basic":"★アンバランスでも惹かれ合う鎖で結ばれる縁\n抗えない魅力を感じ、磁石のように引き合う関係です。この二人が出会うと決して素通リできず、どちらかのアクションで現実が「動く」のが特徴。特に「安」の相手といると言いようのない安らぎを感じるでしょう。「壊」の相手には、振り回されたり、自分を犠牲にしたりすることが多いものの、なぜか喜んで従ってしまうはず。ただしいつしか「こんなのおかしい!」と目が覚めると激しく衝突するリスクが。ハードな関係ではありますが、真正面からぶつかることでいっそう努力したり、絆が強まるのも事実。特に三人以上のグループには、安壊コンビがいたほうがチームが活性化する傾向があります。","love":"知り合ってすぐに街中で偶然に会ったり、食事に行く頻度が多くなるなど、結ばれやすい状況が、タイミング良く何度も訪れます。結果的に、出会ってすぐに付き合うことになり、一度分かれても何度も再会して復活愛になったりします。ただ、この相性は引力が強すぎるあまり、愛憎の激しい関係になることも。片方にとっては居心地が良くても、片方にとっては我慢を強いられたりと、アンバランスになりやすいのですが、なかなか離れられないのが、この相性の特徴です。","work":"問題が発生すると何の解決策も示してくれなかったり、無理難題を押し付けて相手を追い込んでしまったり、仕事面では損失を招くことがあるので注意が必要です。また、冷静な判断力を失いやすく、根拠のない自信だけで突っ走ってしまうケースも。傷つけるようなことばを何度も口走ったり、執拗なゆさぶりをかけてばかりいると、突発的なトラブルが生じるケースがあります。そして、野心から平気で裏切ったり、そそのかしたり、何かと不誠実な態度をとってしまいます。新規開拓など新しいことを始めると、かえってミスが重なって評価を下げてしまうことになるでしょう。また、権力闘争に巻き込まれるなど、行きたくない方向に背中を押されて、本意とは逆の展開になりそうです。約束事は、きっちり守るように心がけることが必要です。"},"栄親":{"kankei":"「栄親」の関係です。\n空気のようにお互いを必要とする関係です。","basic":"★情熱よりも思いやりによって確かに結ばれるリボン\n「栄える」、「親しむ」という言葉のイメージ通り、とてもいいパートナーシップを築ける相性です。むき出しの心をぶつけ合う「安壊」に比べると、相手のことを思いやり、節度を持った大人のつき合いができるのが特徴。恋愛の場合、電撃的な一目惚れというよりは、じっくりと時間をかけて距離を縮めます。関係が安定してくると、自然に「結婚」の二文字が浮かんでくるでしょう。仕事でもいい連係プレーが期待できるので、この二人で手がけたことはどんどん発展していく性質があります。グループに栄親のコンビがいると、アットホームな空気感が生まれ、関係が長続きしやすくなるでしょう。","love":"一目惚れのような情熱的な始まり方ではありませんが、お互いを理解し合い、強い信頼関係を築くことができます。ゆっくり進展していくので、この穏やさを少し物足りなく感じるかもしれませんが、一緒にいると自分が自分らしくいられるので、長く続く関係になります。この関係の2人が結婚すると、円満な家庭を築くことが多く、トラブルとも無縁です。とはいえ、マンネリになりがちなので、刺激を求めて浮気などしないように、要注意です。","work":"お互いの能力と才能を高め合う最高の組み合わせです。第一印象はピンとこなくても時間をかけて付き合えば、相手の頼もしさに気付くでしょう。一度関係を築き上げれば、それにヒビが入ることはまずありません。頭であれこれ理解しようとしないで、互いを信じて行動すれば大きな成功を手にすることができます。また、互いの持っている力を、のびのびと解放的に発揮することができるので、ひとりで業務を行うよりもふたりで協力すればパワーがプラスに働くでしょう。そして、同じプロジェクトで熱中すれば、期待以上の成果を得ることに。互いのポテンシャルやモチベーションを上げてくれる存在なので、ハードな予定も難なくクリアできます。一緒に組めば実績が認められて念願の異動が実現したり、昇給や昇格が叶うなどラッキーなことが重なることも夢ではありません。"},"友衰":{"kankei":"「友衰」の関係です。\n人として信頼し合える親友のような関係です。","basic":"★優しくふんわり結ばれた毛糸。強度はいまひとつかも?\n困った時、弱っている時に助け合える情深い関係が「友衰」。つらいことを紛らわせてくれるので、一緒にいて癒やされるでしょう。ただし「衰」という文字が表すように、不穏な一面が。仕事やお金など、きちんと現実的に対処しなければならない場面でも感情に流され、トラブルに発展することも。異性の場合、恋愛は盛り上がるものの、結婚を前にして立ち止まりそう。気持ちを優先するので、不倫も多い組み合わせです。同性だとグチを言い合ってスッキリはしても「じゃあどうしたらいい?」と前向きな話になりません。その結果「つかず離れず」の関係に終わリやすいでしょう。","love":"友達関係から始めるとうまくいく相性です。出会ったばかりであれば、異性としての情熱をぶつけるより、まずは人と人の信頼関係を結ぶことを重視すること。癒し、癒される関係になれば、一緒にいることで、安心できる穏やかな関係になれます。何も言わなくても気持ちが通じ合う関係ですが、現実的なことになると、溝が生じることも。特に、お金が絡む問題で意見が食い違うと、とたんに関係がギクシャクします。そんな時は、相手を責めず、お互いが相手の話をよく聞くように心がけて。相手は相手、自分は自分を割り切ってしまうと解決しやすいです。","work":"互いの人生観や価値観に共鳴し、話しが合うので飽きることなく語り合えるでしょう。ただ、仕事面では判断が甘くなる傾向があるので注意が必要です。現実的で合理的な関係とはいいがたく、どちらかというとプライベートな場面で盛り上がるフレンドリーな関係なので、仕事の関係となると足並みが揃わず、ぎくしゃくしてしまいます。金銭面での利益も望めないかもしれません。また、お互いのことを美化してしまう場合が多く、その馴れ合いの関係が災いして、互いのプライバシーまでどんどん入り込んでしまいます。その結果、仕事とプライベートの境目がなくなってしまう危険性があるので注意が必要です。何か仕事を始めるときは、現実的な考えを持つ人物を加えてチームを組むとバランスが取れて、物事がスムーズに運びます。"},"危成":{"kankei":"「危成」の関係です。\n違うからこそ惹かれ合う刺激し合える関係です。","basic":"★明らかに違いすぎる関係。取り扱い注意の針金\n他と比べるとそれほど縁が強いわけではない二人。なぜなら性格がまったく異なるのですれ違いで終わりがち。性格的に共通点がないためある意味、衝突すれば「危ない」関係とも言えるでしょう。でも正反対だからこそ補い合い、何かを「成し遂げる」可能性も秘めているのです。そんな二人に必要なのは「共通点」。同じ場所に行く、定期的に会う、同じプロジェクトに参加するなど、意識的に何かしらの接点を持たなければ関係が始まりません。異性の場合、情熱的に盛リ上がるというよりは、共通体験の積み重ねや、冷静な損得勘定によって「この人なら」と理性的に判断したうえで接近するでしょう。","love":"考え方や性格が異なり、出会ってすぐに惹かれ合うことは珍しい関係ですが、何かのきっかけで恋が芽生えると、自分とは違う性質を持つ相手に興味が沸き、楽しい時間を過ごすことができます。黙っていても仲が深まるような強い引力はないものの、愛憎の波が激しくないからこその、確かな関係を築くことが可能です。同じ目線・目標に向かって頑張るような共同作業を増やしていくと、2人の想像以上のものができたり、発見があったりするので、その経験値が2人の財産となり、明るい未来になっていきます。この相性は、お互い干渉しすぎないことで適度な距離感になるので、恋愛関係になるとお互いに照れてしまい、素直になれない時がありますが、時には頼ったり、甘えたりして愛情表現を忘れないようにすると、心地の良い関係でありながらも刺激的という理想的な関係になります。","work":"切磋琢磨しながらお互いが成長できる関係です。現実面では目的が一致するケースが多いので、常に対等な関係を築くことができ、頼れる存在となります。互いの使いどころを心得ているため、お金や仕事が絡むほどに経済面での発展が約束されます。ただ、相手の言っている意味を取り違えることが多く、その意味を理解できないまま放置しておくと、トラブルが生じる危険性があります。また、メールや電話でのやり取りでも誤解を招くような言動になりやすいので、内容を復唱したり、相手の話を最後まで聴くなど細心の注意と確認を怠らないようにしましょう。そして、意見が分かれた場合は、正面からぶつかるのではなく、どこかで相手を立ててあげる賢さを持つことも大切ということを覚えておいて。決して焦らず互いの長所を評価していけば、最強のコンビネーションに。さらに、場面に応じてイニシアチブを譲り合うことができれば、お互いの関係は得がたいものに変わって行きます。"},"命":{"kankei":"「命」の関係です。\n自分とそっくりな相手に強く惹かれ合う宿命の関係です。","basic":"★同じ宿同士の関係で、前世からの目に見えない縁\n出会った瞬間に「この人とは同じだ」と感じることが多いでしょう。同性の場合、相手の言動は自分を見ているように思えますが、その分、嫌な部分が透けて見えたり、キャラ被りが気になったり、距離を置いてしまう場合も。異性の場合は「自分が反対の性だったらこんな風だろうな」と感じそう。でも性的な関係になると一気に衝突が増える傾向があります。とはいえ分の一の関係、互いの人生に何か一つ、重要な影響を与える役目を負って出会っている二人と言えるでしょう。","love":"前世からの縁がある相手といわれている、強い結びつきがあります。出会ってすぐに昔から知っているような親近感がわいたり、なぜが共通点が多かったりと、不思議な感覚を持つことがあります。強烈に引き寄せられるように強く惹かれ合う一方で、相手が自分にそっくりだからこその、嫌悪感が生まれることもある点は要注意。縁が深い分、一度悪い方向に進んでしまうと、巻き込まれて厄介なので、問題があれば早めに解決するようにしましょう。お互いの距離感を大切にして、普段からべったりしすぎない方がうまくいく相性なので、ペットや子ども、共通の友人など、2人以外に誰か一緒にいると、ケンカも少なくなり、楽しい時間が増えたり、連帯感が生まれやすいです。また、お互いが相手に依存しやすい関係なので、「親しき中にも礼儀あり」を忘れないこと。一人の時間も大事にして精神的な自立を心がけましょう。","work":"考え方が似ているので、お互いに上手く歩調を合わせることができます。違う役割であれば個性を発揮できますが、同じ役割や任務を課せられた場合は、神経が過敏に働いて対抗意識を感じてしまうかもしれません。また、プライドがぶつかり合って、互いに一歩も譲らないといったことも少なくないでしょう。でも、互いの存在が強力なモチベーションとなり、仕事面では素晴らしい働きになることもあります。グループの中に「命」の関係が三人以上いると、同じ役割は必要ないと感じて自然と退くこともあるでしょう。運命的な縁がとても深いので、協力できる体制になれば、これ以上ないほどの最強のコンビとなって、驚異的な力を発揮することができます。思うような成果が直ぐに表れなくても、焦ったり途中でやめたりしないことが大切です。そうすれば、強力な縁に後押しされて物事が円滑に運び大きな成果が得れるでしょう。"},"業胎":{"kankei":"「業・胎」の関係です。\n力を合わせて生きていく運命共同体のような関係です。","basic":"★前世から来世へ・・・・・・すべてを超えた時の糸\n「業」はあなたが前世で生きた宿、「胎」はあなたが来世で生まれる宿と言われます。単純な好き嫌いを超えた関係で、何らかの同じ目標に向けて力を合わせるうちに、互いがなくてはならない存在になります。運命共同体として何かを成し遂げるはず。「この人のために」という使命感に突き動かされますが、その役目を感じなくなると離れていきます。一緒に過ごした期間や距離を問わず、鮮烈な影響を受けることが多いのも特徴。あなたの人生を変えた有名人やアーティストの宿を調べてみると、この関係であることが多いはずです。","love":"一緒に何かを成し遂げる使命を持った相性です。恋愛感情だけでなく、より深いところでお互いがお互いを必要とする関係です。どんな困難も乗り越えられる最強の2人になれる関係なので、ビジネスパートナーとしても成功します。ただし、同志としての関係ばかりが強調されやすいので、一緒にリラックスできる時間も大切にしましょう。またこの相性は、一緒に力を合わせるものが何もない2人の場合、一緒にいる意味が感じられなくなるという特徴があります。平凡な日常を過ごしていると、相手が空気のように感じられて、気持ちが薄れやすいので、何か刺激をつくる努力をしてみましょう。特に、すでに夫婦である場合、子育てが落ち着いたら、途端に一緒にいる意味を感じられなくなりやういので、子育てが落ち着いたら、どんなぶうに2人の時間を過ごしたいかを話し合ったり、旅行の計画を立てておくと、良い関係と保つことができます。","work":"人生が大きく変わるような影響を与えたり、与えられたり、自分を重要な人物や場所へつないでくれたり、する仕事面でもソウルメイトのような関係です。重要な意味を持つ関係なので、仕事や活動などを一緒に行う場合は、無償の精神で協力できます。一度諦めた企画や計画があるのなら、もう一度リトライしてみましょう。そうすれば「業・胎」の不思議な縁に導かれて、その企画が後に大成功する可能性があります。仕事関係者でも、一丸となってひとつのプランに取り組めば、なんでもやれそうな万能感にあふれ、自分の行動に自信がみなぎり大きな新天地が開けるでしょう。自分の能力を最大限に発揮するためにも、「業・胎」の関係は必要不可欠です。今まで自分の考えがまとまらなかった事や、はっきりとした方向性がつかめなかった事でも、相談すれば解決策はもちろん大きな成果に繋がるヒントが得られるでしょう。"}},"tokyu":{"滋（ジ）":{"eto":"子（ね）","title":"勤勉な倹約家","desc":"とにかく倹約・損得計算が優先。寄付やボランティアより個人の蓄積を重視。贈り物も値段を下げがちで、友人関係でもお金への執着が強い。","kaiun":"初念に従い、最初に思い浮かんだ気持ちを大切にする。やるべきことは思い切って行動に移し、後から戻ってくるかを気にしない。周囲との関係を良好に保つことが福禄への道。","love":"コツコツ尽くす誠実な愛情家。ただし損得で相手を計りやすく、ケチに見られがち。お金より気持ちを贈ることを覚えると、深い縁に恵まれる。","work":"堅実で計画的、貯える力に長ける。経理・管理・貯蓄を扱う仕事で力を発揮。けち臭さより『皆のために使う』視点を持つと出世運が開ける。","money":"十二気質中もっとも蓄財に強く、無駄遣いをせず着実に殖やせる。出し惜しみが過ぎると人の縁とともに福が逃げるので、生きたお金の使い方を。","sougou":"倹約と勤勉が最大の武器。最初に浮かんだ気持ち（初念）に従って思い切って動き、周囲との和を保てば、晩年まで安定した福禄に恵まれる。"},"結（ケツ）":{"eto":"丑（うし）","title":"頑固で不器用","desc":"頑固で強情、自分の考えを押し通す。口下手で愛嬌が少なく、新しい道や場所を避け、慣れた環境を好む。食べ物の好き嫌いも多く、柔軟性に欠ける。","kaiun":"思い立ったらすぐ行動。朝起きたら大きな声で挨拶する習慣をつけると胸が開く。正直で几帳面という長所を活かしながら、柔軟に物事を進めることが大切。","love":"一途で浮気をしない誠実さが魅力。だが口下手で気持ちを伝えられず誤解されやすい。慣れた相手に安心するので、長い付き合いから愛が育つ。","work":"真面目で几帳面、決めたことを最後までやり抜く。職人・専門職・継続を要する仕事に向く。頑固さを和らげ助言を受け入れると道が広がる。","money":"堅実に貯める力はあるが、融通の利かなさで好機を逃しがち。朝の挨拶で胸を開き、新しい話にも一度は耳を傾けると金運が動く。","sougou":"正直で几帳面な長所を活かしつつ、思い立ったらすぐ動く柔軟さを。大きな声の朝の挨拶で頑なな心を解くと、人にも運にも恵まれる。"},"演（エン）":{"eto":"寅（とら）","title":"気位が高く見栄っ張り","desc":"気位が高くて威張りたがる。是非を判断し正義を好むが、複雑な思考は苦手。金銭には豪放で「私が出す」と言いがち。細かいことを気にせず、家庭内での融和に欠けやすい。","kaiun":"謙虚さを身につけ、言葉遣いや態度を丁寧にする。細かいことに注意を払い、綿密に物事を進める習慣をつけることで演の気の悪い面を克服できる。","love":"面倒見がよく頼れる存在。だがプライドが高く家庭内の融和を欠きやすい。見栄を張らず素直に甘え、丁寧な言葉を使うと愛情が安定する。","work":"正義感とリーダーシップで人を率いる器。表に立つ仕事や統率役に向く。細部の詰めが甘いので、綿密さを補えば大成する。","money":"『私が出す』と気前よく散財しがち。入りも大きいが出も大きい。見栄の出費を抑え、細かい管理を心がけると財が残る。","sougou":"度量の大きさが魅力だが、謙虚さと細やかさが課題。威張らず丁寧に、細部に注意を払えば、信頼と財の両方が集まる。"},"豊（ホ）":{"eto":"卯（う）","title":"愛されるのんびり屋","desc":"子供のころから他人に愛され、争いを好まない穏やかな性格。楽天的だが物事を先延ばしにしがち。頼みごとを断れず損をすることが多い。","kaiun":"体を動かし規則正しい生活を送ることが大切。運動や労働を通じて大食や朝寝の癖を改善する。物事を先延ばしにせず早めに対応する習慣をつけること。","love":"穏やかで愛され上手、争いを好まず恋愛は円満。ただし優柔不断で先延ばし癖が縁を逃すことも。早めの返事と行動で良縁をつかむ。","work":"人に好かれ協調性が高く、調整役・接客で輝く。怠け癖と先延ばしが弱点なので、規則正しい生活と早めの対応で評価が上がる。","money":"頼みを断れず損をしがちで貯まりにくい。体を動かし勤勉に働くことで金運が安定する。先延ばしをやめ、こまめに対処を。","sougou":"生まれつき人に愛される福徳の持ち主。運動と規則正しい生活で怠惰を整え、物事を後回しにしなければ、その人徳が大きな運に育つ。"},"奮（フン）":{"eto":"辰（たつ）","title":"気まぐれで怒りっぽい","desc":"怒りの気を常に外に現わし、些細なことで紛争を引き起こす。高慢で剛腹、友誼を破りやすく共同事業には向かない。ただし自分を頼ってくる者には親切に世話を焼く度量もある。","kaiun":"怒りをコントロールし、気持ちを穏やかに保つ。慢心を慎み、慈悲や仁愛の心を持つ。勢いで行動せず、冷静に判断する習慣をつけることが重要。","love":"情に厚く頼る相手を親身に世話する一方、短気で衝突を招きやすい。怒りを鎮め穏やかに接すれば、その面倒見の良さが深い絆になる。","work":"行動力と度量があり、頼られると力を発揮する。共同事業より単独や統率向き。怒りで信義を損なわぬよう冷静さを保てば大きく伸びる。","money":"豪快で気前がよく勢いで使いがち。慈悲の心で人に施すと巡って返る。慢心からの散財に注意し、冷静な判断を心がけて。","sougou":"強い気と度量が武器。怒りをコントロールし慢心を慎み、慈愛をもって動けば、敵が味方に変わり運勢が大きく開ける。"},"止（ト）":{"eto":"巳（み）","title":"幸運なヤキモチ焼き","desc":"十二宮中で最も幸運な性質を持つが、嫉妬心が強く他人の成功をうらやむ傾向がある。嫉妬心から陰気になりがちで、猜疑心も強い。","kaiun":"嫉妬心を克服し、他人の成功を素直に喜ぶ気持ちを持つ。心を陽気に保ち、積極的に外出して人と交流することで陰気を払う。猜疑心を抑え、他人の意図を疑わずに接すること。","love":"十二気質一の幸運体質で愛されやすい。だが嫉妬心と猜疑心が強く束縛で縁を曇らせがち。相手を信じ心を陽気に保てば良縁が続く。","work":"強運に恵まれチャンスをつかみやすい。人の成功を妬まず素直に学べば、その運がさらに磨かれる。明るく人と交わる職場で伸びる。","money":"もともと金運に恵まれた質。猜疑心で人を遠ざけると福も逃げる。嫉妬を手放し、明るく社交的に動くと豊かさが巡る。","sougou":"生まれ持った幸運が最大の財産。嫉妬と猜疑を克服し、人の幸せを喜び陽気に過ごせば、その強運が存分に花開く。"},"合（ゴ）":{"eto":"午（うま）","title":"飽きっぽい陽キャ","desc":"人とすぐ親しくなるが関係が長続きしない。新しいものや珍しいものを好み、派手なものに目が行く。飲食が好きでオープンな性格ゆえ、秘密を守るのが苦手。","kaiun":"見栄や酒に気をつけ、慎み深い生活を心がける。運が来てもそれを保つために浪費を避け計画的に進める。秘密を守ることを心がけ、信頼を築くことが重要。","love":"社交的で恋の入り口は得意だが、飽きっぽく長続きしにくい。秘密を守り誠実さを示すことで、一時の魅力が信頼ある愛に変わる。","work":"人脈づくりと新規開拓に強く、華やかな仕事で輝く。持続力が課題なので、計画的に最後までやり切る習慣が成功の鍵。","money":"交際費や派手な出費で散りやすく、運が来ても浪費で保てない。見栄と酒を慎み、計画的に使えば財が定着する。","sougou":"明るさと行動力で人を惹きつける質。慎み深さと持続力を補い、秘密を守って信頼を築けば、広い縁が大きな運になる。"},"老（ロ）":{"eto":"未（ひつじ）","title":"慈悲深い心配性","desc":"非常に気が細かく、親切丁寧だが、勇気や決断力に欠ける。過ぎたことを悔やみ将来を過度に心配する。病気になると意気地がなくなり、軽い病気を重くすることがある。","kaiun":"無駄な心配をせず、気を大切に使う。哲学・文学・宗教などの学問に応用することで老の気を良い方向に活かせる。気持ちを落ち着けて前向きに考える習慣をつけること。","love":"細やかで優しく尽くすが、心配性で動けず好機を逃しがち。悔やみすぎず前向きに、勇気を出して気持ちを伝えると愛が実る。","work":"丁寧で気配りに優れ、学問・文筆・宗教・教育など知的分野で力を発揮。決断力の弱さを補えば、その繊細さが大きな強みになる。","money":"心配から守りに入りすぎ好機を逃しやすい。無駄な気を使わず、知恵を学びに活かすと金運も安定する。","sougou":"慈悲深く繊細な心が宝。取り越し苦労を手放し、その細やかさを学問や信仰に注げば、晩年まで穏やかな福に恵まれる。"},"緩（カン）":{"eto":"申（さる）","title":"おっちょこちょいな世話焼き屋","desc":"非常にお世話好きで口も多いが、落ち着きがなく信用が置けないことが多い。早飲み込みで物事を度忘れしやすく、朝寝ができず早起きして騒がしく動き回る。","kaiun":"落ち着いて人情の機微を察し、慎重に行動する。無駄な世話を焼かず必要な世話だけを行うことで心を落ち着けられる。言動に一貫性を持ち信頼を築くことが大切。","love":"面倒見がよく親しみやすいが、落ち着きのなさで信用を欠きがち。言動を一貫させ必要な世話だけに絞ると、愛情に信頼が伴う。","work":"機転と世話好きで人をつなぐ潤滑油。早合点と物忘れが弱点なので、慎重さと確認を習慣にすれば頼られる存在になる。","money":"せわしなく動く割に実りが少なく散りやすい。落ち着いて計画を立て、一つずつ片付けると金運が整う。","sougou":"世話好きと機転が持ち味。落ち着いて人情の機微を察し、言動に一貫性を持てば、その親切が信頼となり運を呼ぶ。"},"堕（ダ）":{"eto":"酉（とり）","title":"頭の切れるやり手","desc":"知恵があり如才なく話すが、悪知恵を使いがち。大きなことを好んで身を破る傾向があり、一攫千金を狙う。知恵があるがゆえに決断力がなく、望みごとが成ることが少ない。","kaiun":"知恵を良い方に用いて人を助けることが重要。悪知恵を使わず正しい道を歩む。大きなことを急がず、一歩ずつ進む習慣をつけること。","love":"弁が立ち魅力的だが、駆け引きが過ぎると相手の信を失う。小細工をやめ正直に向き合えば、その聡明さが愛を深める。","work":"知恵と弁舌に優れ企画・交渉で光る。大ばくちと決断力の弱さが弱点。知恵を人助けに使い一歩ずつ進めば成功が確かになる。","money":"一攫千金を狙い身を持ち崩しやすい。悪知恵より正道で稼ぐこと。大きく急がず堅実に積めば、聡明さが財を生む。","sougou":"抜群の知恵が最大の武器。悪知恵を捨て正しい道に用い、大事を急がず着実に進めれば、その才覚で道が大きく開ける。"},"煉（レン）":{"eto":"戌（いぬ）","title":"一途な頑張り屋","desc":"忍耐力があり百折挫せず、自分のしかけたことを押し通す強さを持つ。しかし内に怒りを秘めており、義理堅い反面、不機嫌なことが多い。腹で理屈をこねがち。","kaiun":"気を晴れやかに持ち、胸を開いて不機嫌を解消する。機嫌よく挨拶をする習慣をつけ、腹の中に楽しいことを思い出すようにする。義理堅さを保ちながらも他人との和を大切に。","love":"義理堅く一途だが、内に不機嫌を溜め込み相手を戸惑わせる。胸を開いて機嫌よく接すれば、その誠実さが揺るがぬ絆になる。","work":"忍耐強く百折不撓、やり遂げる力は随一。継続と責任を要する仕事で大成する。理屈をこねず和を保てば人望も得る。","money":"粘り強く堅実に築くが、不機嫌で人を遠ざけ機会を逃すことも。心を晴らし機嫌よく交われば、金運も人運も上向く。","sougou":"不屈の忍耐力が宝。腹に溜めた不機嫌を晴らし、機嫌よく挨拶し和を大切にすれば、その粘りが確かな成功と信頼を生む。"},"実（ウ）":{"eto":"亥（い）","title":"即断即決の実務家","desc":"一を聞いて二三を悟る優れた性質を持つが、一本調子で我意を通す傾向が強い。正直だが直情径行で人の感情を害することがあり、気短で一刻な性格。","kaiun":"二念に就いて物事を考える習慣をつける。即座に決めず一度考えてから行動することで実の気の悪い面を克服できる。他人と相談しながら物事を進め、バランスを取ること。","love":"正直でまっすぐだが、直情径行で相手の心を傷つけがち。一度考えてから言葉にし、相談しながら進めると愛が穏やかに育つ。","work":"理解が速く決断力に富み、実務・即応の場で力を発揮。我を通しすぎる点に注意し、二念（考え直し）を入れれば失敗が減る。","money":"即断で機を逃さない反面、勢い任せの失敗も。一拍置いて検討し人と相談して動けば、行動力が確かな財につながる。","sougou":"聡明で行動が速いのが強み。即決の前に一度考える『二念』とバランスを身につければ、その実行力で着実に道を切り開ける。"}}};
+const SK = DATA.shuku, LUN = DATA.lunar, EP = DATA.epoch;
+const REL_ARR = ['栄','衰','安','危','成','壊','友','親'];
+
+/* relation -> category(color) + label */
+const REL_META = {
+  '命':{cat:'purple',lab:'転換期',hint:'生まれ直し・初心に戻る時'},
+  '栄':{cat:'green', lab:'絶好調',hint:'栄光・繁栄。挑戦や契約に最適'},
+  '親':{cat:'green', lab:'発展',  hint:'人間関係が円滑に・良縁'},
+  '友':{cat:'green', lab:'発展',  hint:'交流が幸運を呼ぶ・人気上昇'},
+  '衰':{cat:'gray',  lab:'休息',  hint:'メンテナンスと充電・学びの時'},
+  '安':{cat:'green', lab:'安泰',  hint:'安心・安全。動くと運気上昇'},
+  '壊':{cat:'gray',  lab:'浄化',  hint:'断捨離・デトックス・受け身に'},
+  '成':{cat:'green', lab:'成就',  hint:'積み重ねが実る・学問仕事に良'},
+  '危':{cat:'amber', lab:'注意',  hint:'吉凶混合・多忙。衝突に注意'},
+  '業':{cat:'purple',lab:'転換期',hint:'過去生の宿題・やり遂げる時'},
+  '胎':{cat:'green', lab:'種まき',hint:'新しい種まき・計画見直し'}
+};
+
+/* ---------- engine ---------- */
+function dnum(y,m,d){ return Math.floor(Date.UTC(y,m-1,d)/86400000) - (EP_OFFSET); }
+// EP is python ordinal of 1900/1/1; convert via JS epoch offset
+const EP_OFFSET = Math.floor(Date.UTC(1900,0,1)/86400000);
+function dayNumFromYMD(y,m,d){ return Math.floor(Date.UTC(y,m-1,d)/86400000) - EP_OFFSET; }
+function lookupRow(q){
+  let lo=0,hi=LUN.length-1,ans=0;
+  while(lo<=hi){const mid=(lo+hi)>>1; if(LUN[mid][0]<=q){ans=mid;lo=mid+1}else hi=mid-1;}
+  return LUN[ans];
+}
+function calcNatal(y,m,d){
+  const q=dayNumFromYMD(y,m,d), r=lookupRow(q);
+  return ((r[3] + (q - r[0]))%27 + 27)%27;
+}
+function calcDay(natal, y,m,d){
+  const q=dayNumFromYMD(y,m,d), r=lookupRow(q);
+  const dn=r[0], lm=r[1], head=r[3];
+  const V=((head+(q-dn))%27+27)%27;
+  const diff=((natal-V)%27+27)%27;
+  let rel;
+  if(diff===0)rel='命'; else if(diff===9)rel='業'; else if(diff===18)rel='胎';
+  else rel=REL_ARR[(diff-1)%9];
+  // ryohan
+  const W=((Math.floor(Date.UTC(1900,0,1)/86400000)+dn)%7); // 0=Thu? compute weekday
+  const jsW=new Date(Date.UTC(1900,0,1)+dn*86400000).getUTCDay(); // 0=Sun..6=Sat
+  const isoW=jsW===0?7:jsW; // Mon1..Sun7
+  const Y=q-dn+1;
+  const rule=DATA.ryohan[lm];
+  let ryo=false;
+  if(rule){ ryo=(isoW===rule[0]&&Y<=rule[1])||(isoW===rule[2]&&Y>=rule[3]); }
+  let rk='';
+  if(ryo){ const Z=((V-natal)%27+27)%27; rk=({0:'命宿',3:'意宿',9:'事宿',12:'克宿',15:'聚宿',19:'同宿'})[Z]||''; }
+  const meta=REL_META[rel];
+  const m2=DATA.relMean[rel]||{};
+  return {idx:V,name:SK[V]+'宿',rel,cat:meta.cat,lab:meta.lab,hint:meta.hint,
+          self:m2.self||'',fortune:m2.fortune||'',ryohan:ryo,rokugai:rk};
+}
+/* 本命idxとその期間の宿idxVから関係情報を返す（月運・年運共通） */
+function relInfo(natal,V){
+  const diff=((natal-V)%27+27)%27;
+  let rel; if(diff===0)rel='命';else if(diff===9)rel='業';else if(diff===18)rel='胎';else rel=REL_ARR[(diff-1)%9];
+  const meta=REL_META[rel];const m2=DATA.relMean[rel]||{};
+  return {idx:V,name:SK[V]+'宿',rel,cat:meta.cat,lab:meta.lab,hint:meta.hint,self:m2.self||'',fortune:m2.fortune||''};
+}
+/* 月運：暦月(1-12)→固定の宿idx表（Excel 参照表P3:P14）→本命との関係 */
+const MONTH_SHUKU=[20,22,24,26,1,3,5,8,11,13,15,18];
+function monthFortune(natal,cmonth){return relInfo(natal,MONTH_SHUKU[((cmonth-1)%12+12)%12]);}
+/* 年運：Q=(西暦-1897)%28+1, 宿idx=Q<=2?18:(16+Q)%27（Excel 年運表と同式） */
+function yearFortune(natal,year){const Q=(((year-1897)%28)+28)%28+1;const T=Q<=2?18:((16+Q)%27);return relInfo(natal,T);}
+
+/* ---------- 陶宮術（天源淘宮術）三輪：大輪60%(年・10/26区切り)・中輪25%(月・26日区切り)・小輪15%(日支) ---------- */
+const TOKYU_DAIRIN=['滋（ジ）','結（ケツ）','演（エン）','豊（ホ）','奮（フン）','止（ト）','合（ゴ）','老（ロ）','緩（カン）','堕（ダ）','煉（レン）','実（ウ）'];
+const TOKYU_CHURIN=['奮（フン）','止（ト）','合（ゴ）','老（ロ）','緩（カン）','堕（ダ）','煉（レン）','実（ウ）','滋（ジ）','結（ケツ）','演（エン）','豊（ホ）'];
+function excelSerial(y,m,d){return Math.floor(Date.UTC(y,m-1,d)/86400000)-Math.floor(Date.UTC(1899,11,30)/86400000);}
+function tokyuWheels(y,m,d){
+  const yr=y-((m>10||(m===10&&d>=26))?0:1);      // 大輪：10/26区切りの干支年
+  const dai=TOKYU_DAIRIN[(((yr-4)%12)+12)%12];
+  const chu=TOKYU_CHURIN[(((m-1+(d>=26?1:0))%12)+12)%12]; // 中輪：26日区切りの月
+  const s=excelSerial(y,m,d);const sho=TOKYU_DAIRIN[(((s-4)%12)+12)%12]; // 小輪：日支
+  return {dai,chu,sho};
+}
+
+/* ---------- state ---------- */
+/* ストレージ層：localStorageが使えない環境(file://やプライベートウィンドウ)でも
+   例外で止まらず、メモリ内フォールバックで必ず動くようにする */
+const _mem={};
+let STORAGE_OK=true;
+try{localStorage.setItem('sc._probe','1');localStorage.removeItem('sc._probe');}catch(e){STORAGE_OK=false;}
+const LS={
+  get(k,d){ if(STORAGE_OK){try{const v=localStorage.getItem('sc.'+k); if(v!=null) return JSON.parse(v);}catch(e){}} return (k in _mem)?_mem[k]:d; },
+  set(k,v){ _mem[k]=v; if(STORAGE_OK){try{localStorage.setItem('sc.'+k,JSON.stringify(v));}catch(e){}} },
+  keys(){ const ks=Object.keys(_mem); if(STORAGE_OK){try{for(const k of Object.keys(localStorage)){if(k.startsWith('sc.'))ks.push(k.slice(3));}}catch(e){}} return [...new Set(ks)]; }
+};
+let profile=LS.get('profile',null);
+let natalIdx=profile?profile.natal:null;
+let calYM=null, planYM=null, revYM=null;
+function ymKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function todayD(){return new Date();}
+/* ローカル時刻でのYYYY-MM-DD（toISOStringはUTCで日本だと日付がずれるため使わない） */
+function isoLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmtYM(ym){const[y,m]=ym.split('-');return y+'年'+(+m)+'月';}
+
+/* tasks: array per month key {id,text,cell,date,done} */
+function getTasks(ym){return LS.get('tasks.'+ym,[]);}
+function setTasks(ym,t){LS.set('tasks.'+ym,t);}
+function allMonthsTasks(){ // gather for overdue scan across stored months
+  return LS.keys().filter(k=>k.startsWith('tasks.')).map(k=>k.slice(6));
+}
+
+/* plan per month {mission,tree:{},mandala:{center,cells:[{theme}]},malkuth,note} */
+function getPlan(ym){
+  let p=LS.get('plan.'+ym,null);
+  if(!p){p={tree:{},mandalaCenter:'',cells:Array(8).fill(0).map(()=>({theme:''})),malkuth:'',note:''};}
+  if(!p.cells)p.cells=Array(8).fill(0).map(()=>({theme:''}));
+  return p;
+}
+function setPlan(ym,p){LS.set('plan.'+ym,p);}
+
+/* ---------- TREE config (生命の樹：実配置・柱・ワーク質問) ---------- */
+/* pil: l=陰/峻厳, c=均衡, r=陽/慈悲 ; x,y は%(0-100) で生命の樹の形に配置 */
+const NODES=[
+ {id:'k', n:'①',name:'ケテル',sub:'不変の使命',pil:'c',x:50,y:6, q:'今世、魂として持ってきた変わらない核心は何ですか？（毎月同じ）'},
+ {id:'c2',n:'②',name:'コクマー',sub:'今月の流れ・変化',pil:'r',x:79,y:18, q:'この運気の中で自分はどう変化していく？　悪い時ほど、先の自分を楽しみにする。'},
+ {id:'b', n:'③',name:'ビナー',sub:'今月の試練・注意点',pil:'l',x:21,y:18, q:'今月、向き合うべき課題は何ですか？　運気が良い時の注意点も書きましょう。'},
+ {id:'da',n:'',name:'ダアト',sub:'高次からのメッセージ',pil:'c',x:50,y:27,daat:true, q:'今月、天から降ってきた気づき・ひらめき・シンクロを書き留めてください。'},
+ {id:'ch',n:'④',name:'ケセド',sub:'使うべき才能',pil:'r',x:79,y:40, q:'今月の課題に対して、あなたが持っている才能・性質は何ですか？　何を伸ばしますか？'},
+ {id:'g', n:'⑤',name:'ゲブラー',sub:'今月の手放し',pil:'l',x:21,y:40, q:'課題をクリアするために、あえてやめること・制限すること、手放す執着は？'},
+ {id:'t', n:'⑥',name:'ティファレト',sub:'今月の目標',pil:'c',x:50,y:54,heart:true, q:'③②⑤④を統合して、今月の具体的な行動目標を書いてください。'},
+ {id:'n', n:'⑦',name:'ネツァク',sub:'感情・欲求の観察',pil:'r',x:79,y:70, q:'今月どんな感情が動く？　なぜその感情？　本当はどうなりたい？　俯瞰して書く。'},
+ {id:'h', n:'⑧',name:'ホド',sub:'思考・行動設計',pil:'l',x:21,y:70, q:'才能をどう使う？　誰に頼る？　誰と組む？　目標に沿った今月の行動計画を書く。'},
+ {id:'y', n:'⑨',name:'イェソド',sub:'潜在意識・思い込み',pil:'c',x:50,y:83, q:'目標に向かう上で何を恐れていますか？　できると信じていますか？　自分が自分を認められているかを確認し、解放するための行動を書く。'},
+ {id:'m', n:'⑩',name:'マルクト',sub:'現実に現れた成果',pil:'c',x:50,y:95, q:'【A】形になった時の変化（先に書く）　/　【B】形になったこと（月末に記録）　/　【C】形になる前後の差（月末・照合）。'}
+];
+const TREE_CONS=[['k','c2'],['k','b'],['k','t'],['c2','b'],['c2','ch'],['c2','t'],['b','g'],['b','t'],['ch','g'],['ch','t'],['ch','n'],['g','t'],['g','h'],['t','n'],['t','h'],['t','y'],['n','h'],['n','y'],['n','m'],['h','y'],['h','m'],['y','m']];
+/* マンダラ固定8テーマ（NiSH Iさんの実シート）中央=使命 */
+const FIXED_THEMES=['内観・感情・思考','目標','健康・運動','豊かさ・趣味','運気','人間関係','解脱・手放し','自己承認'];
+
+/* ---------- render: TODAY ---------- */
+function relPill(d){return `<span class="pill c-${d.cat}">${d.rel}・${d.lab}</span>`;}
+function renderCompass(){
+  const ym=ymKey(todayD());const p=getPlan(ym);
+  const mission=p.mandalaCenter||'';const goal=p.tree['t']||'';
+  document.getElementById('compassCard').innerHTML=`
+    <div class="cmp-row" onclick="editMissionHome()">
+      <span class="cmp-lab">使命</span><span class="cmp-val ${mission?'':'ph'}">${mission?esc(mission):'タップして入力'}</span><span class="cmp-edit">›</span></div>
+    <div class="cmp-row" onclick="editGoalHome()">
+      <span class="cmp-lab gold">今月の目標</span><span class="cmp-val ${goal?'':'ph'}">${goal?esc(goal):'タップして入力'}</span><span class="cmp-edit">›</span></div>`;
+}
+window.editMissionHome=function(){const ym=ymKey(todayD());const p=getPlan(ym);
+  openEdit({title:'使命（不変・毎月の軸）',hint:'今世、魂として持ってきた変わらない核心は何ですか？（毎月同じ）',value:p.mandalaCenter||'',
+    onSave:v=>{const pp=getPlan(ym);pp.mandalaCenter=v;setPlan(ym,pp);renderCompass();}});};
+window.editGoalHome=function(){openNode(ymKey(todayD()),'t');};
+function renderYMFortune(){
+  const el=document.getElementById('ymFortune');
+  if(natalIdx==null){el.innerHTML='<div class="empty">生年月日を設定すると表示されます。</div>';return;}
+  const t=todayD();const yf=yearFortune(natalIdx,t.getFullYear());const mf=monthFortune(natalIdx,t.getMonth()+1);
+  el.innerHTML=`
+    <div class="ymrow" style="flex-wrap:wrap"><div class="ymk">今年 ${t.getFullYear()}年</div>${relPill(yf)}<span class="ymsk">${yf.name}</span><div class="ymhint">${yf.hint}</div></div>
+    <div class="ymrow" style="flex-wrap:wrap"><div class="ymk">今月 ${t.getMonth()+1}月</div>${relPill(mf)}<span class="ymsk">${mf.name}</span><div class="ymhint">${mf.hint}</div></div>`;
+}
+function renderTokyu(){
+  const el=document.getElementById('tokyuCard');
+  if(!profile){el.innerHTML='<div class="empty">生年月日を設定すると表示されます。</div>';return;}
+  const w=tokyuWheels(profile.y,profile.m,profile.d),T=DATA.tokyu||{};
+  const wheel=(label,name)=>{const d=T[name]||{};
+    return `<div class="tk-wheel"><div class="tk-head"><span class="tk-rin">${label}</span><b>${name}</b><span class="tk-title">${d.title||''}</span></div>
+      <div class="tk-kaiun"><span class="tk-lbl">克服法・開運法</span>${esc(d.kaiun||'')}</div></div>`;};
+  el.innerHTML=`<div class="note" style="margin:0 0 10px">生まれ持った気質と、その活かし方・開運の指針です。自分の生き方・在り方を忘れないために。</div>
+    ${wheel('大輪 60%・芯',w.dai)}${wheel('中輪 25%・後天',w.chu)}${wheel('小輪 15%・潜在',w.sho)}`;
+}
+function renderToday(){
+  renderCompass();renderTokyu();
+  const card=document.getElementById('todayCard');
+  if(natalIdx==null){card.innerHTML=`<div class="empty">右上の「設定」から生年月日を登録すると、<br>あなた専用の運気が表示されます。</div>`;
+    document.getElementById('todayTasks').innerHTML='';document.getElementById('overdueWrap').innerHTML='';
+    renderYMFortune();renderCalendar();return;}
+  const t=todayD();const d=calcDay(natalIdx,t.getFullYear(),t.getMonth()+1,t.getDate());
+  const wd=['日','月','火','水','木','金','土'][t.getDay()];
+  let flags='';
+  if(d.ryohan)flags+=`<span class="flag">凌犯期間</span>`;
+  if(d.rokugai)flags+=`<span class="flag rk">六害・${d.rokugai}</span>`;
+  card.innerHTML=`
+    <div class="today-head">
+      <div class="today-date">${t.getMonth()+1}月${t.getDate()}日<small>(${wd})</small></div>
+      ${relPill(d)}
+    </div>
+    <div class="shuku-line"><span class="sk">${d.name}</span><span style="color:var(--sub);font-size:13px">${d.hint}</span></div>
+    <div class="rel-meaning"><span class="lbl">今日の運勢</span>${d.fortune}</div>
+    ${flags?`<div class="flags">${flags}</div>`:''}
+  `;
+  renderTodayTasks();renderOverdue();renderYMFortune();renderCalendar();
+}
+function renderTodayTasks(){
+  const t=todayD(),ym=ymKey(t),iso=isoLocal(t);
+  const tasks=getTasks(ym);
+  /* 「今日やること」＝今日の日付のタスクのみ。マンダラの今月の課題は自動では出さない
+     （課題を「今日やる」と決めたら、設計タブで日付を今日に設定すると、ここに出る） */
+  const today=tasks.filter(x=>x.date===iso);
+  const el=document.getElementById('todayTasks');
+  if(!today.length){el.innerHTML=`<div class="empty">今日やることはまだありません。<br>下の欄に追加するか、「設計」の課題に日付を設定すると、ここに出ます。</div>`;return;}
+  el.innerHTML=today.map(x=>taskRow(x,ym)).join('');
+}
+function taskRow(x,ym){
+  const cell=(x.cell!=null)?`<span class="cellbadge">${esc(FIXED_THEMES[x.cell]||'◆')}</span>`:'';
+  return `<div class="task ${x.done?'done':''}" data-id="${x.id}" data-ym="${ym}">
+    <div class="chk ${x.done?'on':''}" onclick="toggleTask('${ym}','${x.id}')">${x.done?'✓':''}</div>
+    <div class="txt">${cell}${esc(x.text)}${x.date?`<div class="meta">${x.date.slice(5).replace('-','/')}</div>`:''}</div>
+  </div>`;
+}
+function renderOverdue(){
+  const t=todayD(),iso=isoLocal(t);
+  let items=[];
+  allMonthsTasks().forEach(ym=>{getTasks(ym).forEach(x=>{if(x.date&&x.date<iso&&!x.done)items.push({...x,ym});});});
+  const w=document.getElementById('overdueWrap');
+  if(!items.length){w.innerHTML='';return;}
+  w.innerHTML=`<div class="section-title">未完了 ・ リスケが必要</div>
+    <div class="card">${items.map(x=>`
+      <div class="task" data-id="${x.id}">
+        <div class="chk" onclick="toggleTask('${x.ym}','${x.id}')"></div>
+        <div class="txt">${esc(x.text)}<div class="meta">期限 ${x.date.slice(5).replace('-','/')} を過ぎています</div>
+          <button class="resch" onclick="reschedule('${x.ym}','${x.id}')">今日にリスケ</button></div>
+      </div>`).join('')}</div>`;
+}
+window.toggleTask=function(ym,id){const t=getTasks(ym);const x=t.find(a=>a.id===id);if(x){x.done=!x.done;setTasks(ym,t);}refreshAll();};
+window.reschedule=function(ym,id){const t=getTasks(ym);const x=t.find(a=>a.id===id);if(x){
+  const today=todayD(),niso=isoLocal(today),nym=ymKey(today);
+  if(nym===ym){x.date=niso;setTasks(ym,t);}
+  else{t.splice(t.indexOf(x),1);setTasks(ym,t);const nt=getTasks(nym);x.date=niso;nt.push(x);setTasks(nym,nt);}
+}refreshAll();};
+
+/* ---------- calendar ---------- */
+function renderCalendar(){
+  if(!calYM)calYM=new Date(todayD().getFullYear(),todayD().getMonth(),1);
+  document.getElementById('calLab').textContent=fmtYM(ymKey(calYM));
+  const cf=document.getElementById('calFortune');
+  if(natalIdx!=null){
+    const cm=calYM.getMonth()+1, cy=calYM.getFullYear();
+    const mf=monthFortune(natalIdx,cm);
+    const yDiff=cy!==todayD().getFullYear();
+    const yf=yDiff?yearFortune(natalIdx,cy):null;
+    cf.innerHTML=`<div class="cf-head">${relPill(mf)}<span class="ymsk">${mf.name}</span>${yf?`<span class="cf-y">${cy}年は ${yf.rel}・${yf.lab}</span>`:''}</div>
+      <div class="cf-hint">${cm}月の運気：${mf.hint}</div>`;
+  }else cf.innerHTML='';
+  const head=document.getElementById('calHead');
+  head.innerHTML=['日','月','火','水','木','金','土'].map(d=>`<div class="cal-h">${d}</div>`).join('');
+  const y=calYM.getFullYear(),m=calYM.getMonth();
+  const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+  const t=todayD();let html='';
+  for(let i=0;i<first;i++)html+=`<div></div>`;
+  for(let dd=1;dd<=days;dd++){
+    let cls='cal-d',inner=`${dd}`,dot='';
+    if(natalIdx!=null){const d=calcDay(natalIdx,y,m+1,dd);cls+=' c-'+d.cat;inner+=`<span class="rl">${d.rel}</span>`;if(d.ryohan)dot='<span class="ryo-dot"></span>';}
+    if(y===t.getFullYear()&&m===t.getMonth()&&dd===t.getDate())cls+=' today';
+    html+=`<div class="${cls}" onclick="showDay(${y},${m+1},${dd})">${dot}${inner}</div>`;
+  }
+  document.getElementById('calBody').innerHTML=html;
+}
+window.showDay=function(y,m,dd){
+  if(natalIdx==null){openProfile();return;}
+  const d=calcDay(natalIdx,y,m,dd);
+  let flags='';if(d.ryohan)flags+=`<span class="flag">凌犯期間</span>`;if(d.rokugai)flags+=`<span class="flag rk">六害・${d.rokugai}</span>`;
+  document.getElementById('dayDetail').innerHTML=`
+    <div class="today-head"><div class="today-date">${m}月${dd}日</div>${relPill(d)}</div>
+    <div class="shuku-line"><span class="sk">${d.name}</span></div>
+    <div class="rel-meaning"><span class="lbl">運勢</span>${d.fortune}</div>
+    ${flags?`<div class="flags">${flags}</div>`:''}`;
+  document.getElementById('dayModal').classList.add('show');
+};
+
+/* ---------- PLAN ---------- */
+function renderPlan(){
+  if(!planYM)planYM=new Date(todayD().getFullYear(),todayD().getMonth(),1);
+  const ym=ymKey(planYM);document.getElementById('planLab').textContent=fmtYM(ym);
+  const p=getPlan(ym);
+  renderTree(ym,p);
+  // mandala (固定8テーマ / 中央=使命)
+  const mission=p.mandalaCenter||'使命';
+  const tasks=getTasks(ym);
+  let mhtml=`<div class="mcell center" onclick="editCenter('${ym}')"><div class="mtitle">${esc(mission)}</div><div class="mcount">使命 ›</div></div>`;
+  const order=[0,1,2,3,'C',4,5,6,7];
+  let html='';
+  order.forEach(o=>{
+    if(o==='C'){html+=mhtml;return;}
+    const c=p.cells[o];const theme=c.theme||FIXED_THEMES[o];const acts=tasks.filter(t=>t.cell===o);
+    const actHtml=acts.length?`<div class="mcell-acts">`+acts.slice(0,2).map(a=>`<div class="mact ${a.done?'done':''}">${a.done?'✓':'・'}${esc(a.text)}</div>`).join('')+(acts.length>2?`<div class="mact more">＋他${acts.length-2}件</div>`:'')+`</div>`:'<div class="mcount ph">＋ 課題を追加</div>';
+    html+=`<div class="mcell" onclick="openCell('${ym}',${o})">
+      <div class="mtitle">${esc(theme)}</div>${actHtml}</div>`;
+  });
+  document.getElementById('mandala').innerHTML=html;
+  renderPlanSummary(ym);
+}
+function renderTree(ym,p){
+  const co=id=>NODES.find(n=>n.id===id);
+  const lines=TREE_CONS.map(([a,b])=>{const A=co(a),B=co(b);return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;}).join('');
+  const nodes=NODES.map(nd=>{
+    const val=(nd.id==='m')?(p.malkuth||''):(p.tree[nd.id]||'');
+    const dot=val.trim()?'<span class="sn-dot">✓</span>':'';
+    const cls='snode p-'+nd.pil+(nd.daat?' daat':'')+(nd.heart?' heart':'');
+    return `<div class="${cls}" style="left:${nd.x}%;top:${nd.y}%" onclick="openNode('${ym}','${nd.id}')">
+      ${dot}<span class="sn-n">${nd.n||'◇'}</span><span class="sn-name">${nd.name}</span></div>`;
+  }).join('');
+  const filled=NODES.filter(nd=>(((nd.id==='m')?(p.malkuth||''):(p.tree[nd.id]||''))||'').trim());
+  const sumHtml=filled.length?`<div class="card tree-sum">`+filled.map(nd=>{const val=(nd.id==='m')?(p.malkuth||''):(p.tree[nd.id]||'');
+    return `<div class="tsum" onclick="openNode('${ym}','${nd.id}')"><span class="tsum-n p-${nd.pil}">${nd.n||'◇'}</span><div class="tsum-b"><b>${nd.name}・${nd.sub}</b><span>${esc(val)}</span></div></div>`;}).join('')+`</div>`:'';
+  document.getElementById('treeWrap').innerHTML=`<div class="card" style="padding:12px 6px 8px">
+    <div class="soultree"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${lines}</svg>${nodes}</div>
+    <div class="tree-legend"><span><i style="background:#b3a3e4"></i>陰・峻厳</span><span><i style="background:#8d9ce6"></i>均衡</span><span><i style="background:#62c2a4"></i>陽・慈悲</span></div>
+    <div class="note" style="text-align:center">各ノードをタップして今月の問いに答えましょう。記入した内容は下に一覧で表示されます。</div></div>${sumHtml}`;
+}
+let curNode={ym:null,id:null};
+window.openNode=function(ym,id){curNode={ym,id};const nd=NODES.find(n=>n.id===id);const p=getPlan(ym);
+  document.getElementById('nodeTitle').textContent=(nd.n?nd.n+'　':'')+nd.name+' ・ '+nd.sub;
+  document.getElementById('nodeQ').textContent=nd.q;
+  document.getElementById('nodeText').value=(id==='m')?(p.malkuth||''):(p.tree[id]||'');
+  document.getElementById('nodeModal').classList.add('show');
+};
+window.editCenter=function(ym){const p=getPlan(ym);
+  openEdit({title:'使命（マンダラ中央・不変の軸）',hint:'毎月の軸となる使命。生命の樹①ケテルと同じ。',value:p.mandalaCenter||'',
+    onSave:v=>{const pp=getPlan(ym);pp.mandalaCenter=v;setPlan(ym,pp);renderPlan();}});};
+function renderPlanSummary(ym){
+  const el=document.getElementById('planSummary');
+  if(natalIdx==null){el.innerHTML='<div class="empty">生年月日を設定すると運気サマリーが表示されます。</div>';return;}
+  const[y,m]=ym.split('-').map(Number);const days=new Date(y,m,0).getDate();
+  let best=[],warn=[],ryo=[];
+  for(let dd=1;dd<=days;dd++){const d=calcDay(natalIdx,y,m,dd);
+    if(d.rel==='栄'||d.rel==='成')best.push(dd);
+    if(d.rel==='危'||d.rel==='壊'||d.rel==='命'||d.rel==='業')warn.push(dd);
+    if(d.ryohan)ryo.push(dd);}
+  const mf=monthFortune(natalIdx,m);const yf=yearFortune(natalIdx,y);
+  el.innerHTML=`
+    <div class="ymrow" style="flex-wrap:wrap;padding-top:0"><div class="ymk">${m}月の運気</div>${relPill(mf)}<span class="ymsk">${mf.name}</span><div class="ymhint">${mf.hint}</div></div>
+    <div class="ymrow" style="flex-wrap:wrap"><div class="ymk">${y}年の運気</div>${relPill(yf)}<span class="ymsk">${yf.name}</span><div class="ymhint">${yf.hint}</div></div>
+    <div style="font-size:13px;margin-top:12px"><b style="color:var(--green)">◎ 追い風の日（栄・成）</b><div class="daylist">${best.map(d=>`<span class="daychip c-green"><b>${d}</b></span>`).join('')||'<span class="empty">—</span>'}</div></div>
+    <div style="font-size:13px;margin-top:12px"><b style="color:var(--amber)">△ 慎重に（危・壊・命・業）</b><div class="daylist">${warn.map(d=>`<span class="daychip c-amber"><b>${d}</b></span>`).join('')||'<span class="empty">—</span>'}</div></div>
+    <div style="font-size:13px;margin-top:12px"><b style="color:var(--orange)">● 凌犯期間</b><div class="daylist">${ryo.map(d=>`<span class="daychip" style="background:var(--orange-bg);color:var(--orange)"><b>${d}</b></span>`).join('')||'<span class="empty">なし</span>'}</div></div>`;
+}
+
+/* mandala cell modal */
+let curCell={ym:null,i:null};
+window.openCell=function(ym,i){curCell={ym,i};const p=getPlan(ym);
+  document.getElementById('cellTitle').textContent='◆ '+(p.cells[i].theme||FIXED_THEMES[i]);
+  document.getElementById('cellThemeInput').value=p.cells[i].theme||FIXED_THEMES[i];
+  renderCellActions();document.getElementById('cellModal').classList.add('show');
+};
+function renderCellActions(){
+  const{ym,i}=curCell;const tasks=getTasks(ym).filter(t=>t.cell===i);
+  const iso=isoLocal(todayD());const isCurMonth=(ym===ymKey(todayD()));
+  document.getElementById('cellActions').innerHTML=tasks.length?tasks.map(x=>{
+    const todayBtn=(isCurMonth&&x.date!==iso)?`<button class="resch acc" onclick="setToday('${ym}','${x.id}')">今日やる</button>`:'';
+    const dateLbl=(x.date===iso)?'<div class="meta" style="color:var(--green);font-weight:600">今日やること</div>':(x.date?`<div class="meta">予定 ${x.date.slice(5).replace('-','/')}</div>`:'');
+    return `<div class="task ${x.done?'done':''}">
+      <div class="chk ${x.done?'on':''}" onclick="toggleTask('${ym}','${x.id}');renderCellActions()">${x.done?'✓':''}</div>
+      <div class="txt">${esc(x.text)}${dateLbl}
+        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">${todayBtn}<button class="resch" onclick="setTaskDate('${ym}','${x.id}')">日付${x.date?'変更':'設定'}</button></div></div>
+    </div>`;}).join(''):'<div class="empty">課題を追加しましょう。</div>';
+}
+window.setToday=function(ym,id){const t=getTasks(ym);const x=t.find(a=>a.id===id);if(!x)return;
+  x.date=isoLocal(todayD());setTasks(ym,t);renderCellActions();showToast('「今日やること」に追加しました');};
+window.setTaskDate=function(ym,id){const t=getTasks(ym);const x=t.find(a=>a.id===id);if(!x)return;
+  openEdit({title:'実行日を設定',mode:'date',value:x.date||ym+'-01',
+    onSave:v=>{if(v&&/^\d{4}-\d{2}-\d{2}$/.test(v)){const tt=getTasks(ym);const xx=tt.find(a=>a.id===id);if(xx){xx.date=v;setTasks(ym,tt);renderCellActions();}}}});};
+
+/* ---------- REVIEW ---------- */
+function renderReview(){
+  if(!revYM)revYM=new Date(todayD().getFullYear(),todayD().getMonth(),1);
+  const ym=ymKey(revYM);document.getElementById('revLab').textContent=fmtYM(ym);
+  const tasks=getTasks(ym);const done=tasks.filter(t=>t.done).length,total=tasks.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('revStat').innerHTML=`
+    <div class="box"><div class="big">${done}</div><div class="lab">完了</div></div>
+    <div class="box"><div class="big">${total-done}</div><div class="lab">未完了</div></div>
+    <div class="box"><div class="big">${pct}%</div><div class="lab">達成率</div></div>`;
+  document.getElementById('revBar').style.width=pct+'%';
+  document.getElementById('revBarLab').textContent=total?`${total}件中 ${done}件を実践しました。`:'タスクがありません。';
+  const p=getPlan(ym);
+  const rm=document.getElementById('revMalkuth'),rn=document.getElementById('revNote');
+  rm.value=p.malkuth||'';rn.value=p.note||'';
+  rm.oninput=()=>{const pp=getPlan(ym);pp.malkuth=rm.value;setPlan(ym,pp);};
+  rn.oninput=()=>{const pp=getPlan(ym);pp.note=rn.value;setPlan(ym,pp);};
+}
+
+/* ---------- AISHO (相性診断) ---------- */
+/* Excel相性鑑定と同式：自分→相手 = MOD(相手idx - 自分idx, 27)（双方向で見る） */
+const PAIR_OF={'命':'命','栄':'栄親','親':'栄親','友':'友衰','衰':'友衰','安':'安壊','壊':'安壊','危':'危成','成':'危成','業':'業胎','胎':'業胎'};
+function relFromDiff(diff){
+  diff=((diff%27)+27)%27;
+  if(diff===0)return'命'; if(diff===9)return'業'; if(diff===18)return'胎';
+  return REL_ARR[(diff-1)%9];
+}
+function readPerson(py,pm,pd){const y=+py.value,m=+pm.value,d=+pd.value;
+  if(!y||!m||!d||y<1900||y>2100||m<1||m>12||d<1||d>31)return null;return {y,m,d,natal:calcNatal(y,m,d)};}
+/* 距離：2宿の隔たり(最短)で決まる。sep<=4 近 / <=8 中 / >=9 遠（命業胎は距離なし） */
+function distInfo(rel,diff){
+  const dd=DATA.aishoDist[rel]||{};
+  if(rel==='命'||rel==='業'||rel==='胎')return {text:dd.n||'',label:''};
+  const d=((diff%27)+27)%27,s=Math.min(d,27-d);
+  const key=s<=4?'n':(s<=8?'m':'f'),label=s<=4?'近距離':(s<=8?'中距離':'遠距離');
+  return {text:dd[key]||dd.n||'',label};
+}
+window.runAisho=function(){
+  const A=readPerson(aiY,aiM,aiD),B=readPerson(biY,biM,biD);
+  if(!A||!B){showToast('お二人の生年月日を正しく入力してください');return;}
+  const aName=aiName.value.trim()||'お一人目',bName=biName.value.trim()||'お二人目';
+  const aToB=relFromDiff(B.natal-A.natal);   // 自分(A)から見た相手(B) = MOD(相手-自分)
+  const bToA=relFromDiff(A.natal-B.natal);   // 相手(B)から見た自分(A)
+  const pair=PAIR_OF[aToB];const pt=DATA.aishoPair[pair]||{};
+  const iAB=distInfo(aToB,B.natal-A.natal),iBA=distInfo(bToA,A.natal-B.natal);
+  const dirCard=(fromN,toN,fromShuku,rel,info)=>{const m=REL_META[rel];
+    return `<div class="section-title">${esc(fromN)}から見た ${esc(toN)}</div>
+      <div class="card"><div class="ai-dir"><b>${esc(fromN)}</b>（${fromShuku}宿）から見た <b>${esc(toN)}</b><span class="pill c-${m.cat}" style="margin-left:8px">${rel}${info.label?'・'+info.label:''}</span></div>
+        <div class="aibody" style="margin-top:8px">${esc(info.text)}</div></div>`;};
+  const pairBlocks=[['基本的な相性',pt.basic],['恋愛関係の相性',pt.love],['仕事関係の相性',pt.work]]
+    .filter(x=>x[1]).map(x=>`<div class="section-title">${x[0]}</div><div class="card"><div class="aibody">${esc(x[1])}</div></div>`).join('');
+  document.getElementById('aishoResult').innerHTML=`
+    <div class="section-title">診断結果</div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:22px;font-weight:700;color:var(--plum);letter-spacing:.04em">「${pair}」の関係</div>
+      <div style="font-size:13px;color:var(--sub);margin-top:6px">${esc(aName)}（${SK[A.natal]}宿） ・ ${esc(bName)}（${SK[B.natal]}宿）</div>
+      ${pt.kankei?`<div class="aibody" style="text-align:left;margin-top:10px">${esc(pt.kankei)}</div>`:''}
+    </div>
+    ${pairBlocks}
+    ${dirCard(aName,bName,SK[A.natal],aToB,iAB)}
+    ${dirCard(bName,aName,SK[B.natal],bToA,iBA)}`;
+  document.getElementById('aishoResult').scrollIntoView({behavior:'smooth',block:'start'});
+};
+function prefillAisho(){
+  if(profile && !aiY.value){aiName.value=profile.name||'';aiY.value=profile.y;aiM.value=profile.m;aiD.value=profile.d;}
+}
+
+/* ---------- shared ---------- */
+function esc(s){return(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function refreshAll(){renderToday();if(document.getElementById('view-plan').classList.contains('active'))renderPlan();if(document.getElementById('view-review').classList.contains('active'))renderReview();}
+function addTask(ym,text,cell,date){const t=getTasks(ym);t.push({id:'k'+Date.now()+Math.random().toString(36).slice(2,6),text,cell:cell??null,date:date||null,done:false});setTasks(ym,t);}
+
+/* nav */
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const v=b.dataset.v;document.getElementById('view-'+v).classList.add('active');
+  if(v==='today')renderToday();if(v==='plan')renderPlan();if(v==='review')renderReview();if(v==='aisho')prefillAisho();
+  window.scrollTo(0,0);
+}));
+
+/* toast */
+let toastT=null;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1600);}
+
+/* 汎用の編集モーダル（promptの代わり：環境に依存せず確実に動く） */
+let _editSaveCb=null;
+function openEdit(opts){
+  document.getElementById('editTitle').textContent=opts.title||'';
+  const hint=document.getElementById('editHint');
+  if(opts.hint){hint.textContent=opts.hint;hint.style.display='';}else{hint.style.display='none';}
+  const ta=document.getElementById('editText'),di=document.getElementById('editDate');
+  if(opts.mode==='date'){ta.style.display='none';di.style.display='';di.value=opts.value||'';}
+  else{di.style.display='none';ta.style.display='';ta.value=opts.value||'';}
+  _editSaveCb=opts.onSave;_editMode=opts.mode||'text';
+  document.getElementById('editModal').classList.add('show');
+  setTimeout(()=>{(opts.mode==='date'?di:ta).focus();},80);
+}
+let _editMode='text';
+document.getElementById('editSave').onclick=function(){
+  const v=(_editMode==='date')?document.getElementById('editDate').value:document.getElementById('editText').value;
+  document.getElementById('editModal').classList.remove('show');
+  if(_editSaveCb)_editSaveCb(v);
+  showToast('保存しました');
+};
+
+/* profile */
+function openProfile(){const m=document.getElementById('profileModal');
+  if(profile){document.getElementById('inName').value=profile.name||'';
+    document.getElementById('inY').value=profile.y;document.getElementById('inM').value=profile.m;document.getElementById('inD').value=profile.d;}
+  m.classList.add('show');}
+document.getElementById('btnProfile').onclick=openProfile;
+function saveProfileFn(){
+  const y=+document.getElementById('inY').value,m=+document.getElementById('inM').value,d=+document.getElementById('inD').value;
+  if(!y||!m||!d||y<1900||y>2100||m<1||m>12||d<1||d>31){showToast('生年月日を正しく入力してください');return;}
+  const natal=calcNatal(y,m,d);
+  profile={name:document.getElementById('inName').value.trim(),y,m,d,natal};natalIdx=natal;LS.set('profile',profile);
+  document.getElementById('profileModal').classList.remove('show');applyProfile();refreshAll();
+  showToast('本命宿 '+SK[natal]+'宿　を保存しました');
+}
+document.getElementById('saveProfile').onclick=saveProfileFn;
+/* キーボードのEnter/完了でも保存できるように（スマホでボタンが隠れても保存可能） */
+['inName','inY','inM','inD'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveProfileFn();}}));
+function applyProfile(){
+  document.getElementById('pName').textContent=profile&&profile.name?profile.name:(profile?'あなた':'ようこそ');
+  document.getElementById('pShuku').textContent=profile?('本命宿 '+SK[profile.natal]+'宿'):'本命宿 —';
+}
+
+/* 相性ページ */
+document.getElementById('aiGo').onclick=runAisho;
+['aiName','aiY','aiM','aiD','biName','biY','biM','biD'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runAisho();}}));
+
+/* calendar / plan / review nav buttons */
+const shift=(d,n)=>new Date(d.getFullYear(),d.getMonth()+n,1);
+document.getElementById('calPrev').onclick=()=>{calYM=shift(calYM,-1);renderCalendar();};
+document.getElementById('calNext').onclick=()=>{calYM=shift(calYM,1);renderCalendar();};
+document.getElementById('planPrev').onclick=()=>{planYM=shift(planYM,-1);renderPlan();};
+document.getElementById('planNext').onclick=()=>{planYM=shift(planYM,1);renderPlan();};
+document.getElementById('revPrev').onclick=()=>{revYM=shift(revYM,-1);renderReview();};
+document.getElementById('revNext').onclick=()=>{revYM=shift(revYM,1);renderReview();};
+
+/* quick add */
+document.getElementById('quickAddBtn').onclick=()=>{const i=document.getElementById('quickAdd');if(!i.value.trim())return;
+  const t=todayD();addTask(ymKey(t),i.value.trim(),null,isoLocal(t));i.value='';renderToday();};
+document.getElementById('quickAdd').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('quickAddBtn').click();});
+
+/* cell modal */
+document.getElementById('cellThemeInput').addEventListener('input',e=>{const p=getPlan(curCell.ym);p.cells[curCell.i].theme=e.target.value;setPlan(curCell.ym,p);});
+document.getElementById('cellActBtn').onclick=()=>{const i=document.getElementById('cellActInput');if(!i.value.trim())return;
+  addTask(curCell.ym,i.value.trim(),curCell.i,null);i.value='';renderCellActions();};
+document.getElementById('cellActInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('cellActBtn').click();});
+document.getElementById('cellClose').onclick=()=>{document.getElementById('cellModal').classList.remove('show');renderPlan();showToast('保存しました');};
+document.getElementById('dayClose').onclick=()=>document.getElementById('dayModal').classList.remove('show');
+/* tree node modal */
+document.getElementById('nodeText').addEventListener('input',e=>{const p=getPlan(curNode.ym);
+  if(curNode.id==='m')p.malkuth=e.target.value; else p.tree[curNode.id]=e.target.value;
+  setPlan(curNode.ym,p);});
+function closeNode(){document.getElementById('nodeModal').classList.remove('show');if(curNode.ym)renderTree(curNode.ym,getPlan(curNode.ym));
+  if(document.getElementById('view-today').classList.contains('active'))renderToday();}
+document.getElementById('nodeSave').onclick=()=>{closeNode();showToast('保存しました');};
+/* tap backdrop to close */
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){if(m.id==='nodeModal'){closeNode();return;}m.classList.remove('show');if(m.id==='cellModal')renderPlan();}}));
+
+/* init */
+applyProfile();
+if(!profile)openProfile();
+renderToday();
+if(!STORAGE_OK){ setTimeout(()=>showToast('この環境では保存が一時的です（公開版では自動保存）'),900); }
+</script>
+</body>
+</html>
